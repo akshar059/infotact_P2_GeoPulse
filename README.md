@@ -105,6 +105,34 @@ flowchart TD
 
 ---
 
+## 📊 Data Schema & Dictionary
+
+The analytical pipeline processes anonymized hyper-local mobility pings and retail Point of Interest (POI) metadata using the standardized schema below:
+
+| Column Name | Data Type | Description | Example |
+| :--- | :--- | :--- | :--- |
+| `ping_id` | `string` | Unique identifier for each recorded location ping | `PNG_982341` |
+| `device_hash` | `string` | Anonymized, privacy-compliant visitor device identifier | `a8f3d91c...` |
+| `timestamp` | `datetime` | UTC/Local ISO-8601 timestamp of the location observation | `2026-11-11T10:30:00Z` |
+| `latitude` | `float64` | WGS84 geographic latitude of the observation | `12.84521` |
+| `longitude` | `float64` | WGS84 geographic longitude of the observation | `77.66017` |
+| `horizontal_accuracy` | `float32` | Estimated GPS accuracy radius in meters | `12.5` |
+| `poi_id` | `string` | Matched retail Point of Interest identifier | `POI_BLR_042` |
+| `poi_category` | `string` | Retail vertical classification (e.g., Grocery, Apparel, Cafe) | `Specialty Retail` |
+| `h3_index` | `string` | Uber H3 hexagonal spatial grid index (Resolution 9) | `8961892416fffff` |
+| `dwell_time_sec` | `int32` | Calculated stay duration within the store geofence (seconds) | `940` |
+
+---
+
+## 💡 Target Business Use Cases
+
+- **Site Selection & Expansion:** Evaluate footfall potential and demographic fit before leasing new retail locations.
+- **Peak Staffing & Operations:** Align store associate scheduling with hourly and day-of-week visitor traffic surges.
+- **Competitor & Cannibalization Analysis:** Quantify shared visitor overlap across nearby competing stores or sister branches.
+- **Hyper-Local Campaign Attribution:** Measure uplift in store visits following localized out-of-home (OOH) or digital promotions.
+
+---
+
 ## 🛠️ Technology Stack
 
 - **Core Programming:** Python 3.10+
@@ -166,6 +194,13 @@ flowchart TD
 | **Week 2** | Exploratory Spatial Data Analysis | Spatial distribution, foot traffic heatmaps, temporal pattern identification | ⚪ Planned |
 | **Week 3** | Mobility Metrics & Catchment Analysis | Dwell time analytics, customer trade area modeling, clustering | ⚪ Planned |
 | **Week 4** | Dashboard & Final Presentation | Interactive Streamlit app, PPT, documentation, and executive report | ⚪ Planned |
+
+---
+
+## 📈 Daily Progress Log
+
+- **Day 1 (10 Nov 2026):** Repository initialization on `akshar` branch; added project overview, objectives, directory architecture, analytical pipeline, technology stack, and 4-week milestone roadmap.
+- **Day 2 (11 Nov 2026):** Defined standardized mobility data schema and data dictionary (`ping_id`, `device_hash`, `h3_index`, `dwell_time_sec`) and documented core retail business use cases.
 
 ---
 
