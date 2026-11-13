@@ -136,6 +136,26 @@ To guarantee accurate footfall and dwell-time analytics, every ingested mobility
 
 ---
 
+## 📐 Feature Engineering & Spatial Feature Extraction
+
+To transform filtered mobility pings into predictive and analytical signals, the feature engineering pipeline constructs three tiers of attributes:
+
+### 1. Multi-Resolution Hexagonal Spatial Indexing (Uber H3)
+- **H3 Resolution 8 (~460m edge length):** Used for macro-catchment trade zones and inter-district commuter traffic analysis.
+- **H3 Resolution 9 (~174m edge length):** Primary spatial resolution for store trade area delineation, retail cluster density, and competitor proximity.
+- **H3 Resolution 10 (~66m edge length):** Micro-spatial resolution for storefront geofencing, curb-level footfall density, and entrance attribution.
+
+### 2. Cyclical Temporal Encodings
+- **Hour-of-Day Encodings:** Transform continuous hours $h \in [0, 23]$ into sinusoidal coordinate pairs:
+  $$\text{hour\_sin} = \sin\left(\frac{2\pi \cdot h}{24}\right), \quad \text{hour\_cos} = \cos\left(\frac{2\pi \cdot h}{24}\right)$$
+- **Day-of-Week Segmentation:** Binary indicators for weekdays vs. weekends and retail peak shopping windows (Lunch Rush: 12:00–14:00; Evening Surge: 18:00–21:00).
+
+### 3. Visitor Mobility Behavioral Vectors
+- **Repeat Visitation Ratio:** Proportion of repeat device hashes observed over a rolling 30-day window.
+- **Cross-Category Transition Probability:** Likelihood of a visitor transitioning from a food & beverage POI to an apparel or grocery store within 90 minutes.
+
+---
+
 ## 💡 Target Business Use Cases
 
 - **Site Selection & Expansion:** Evaluate footfall potential and demographic fit before leasing new retail locations.
@@ -214,6 +234,7 @@ To guarantee accurate footfall and dwell-time analytics, every ingested mobility
 - **Day 1 (10 Nov 2026):** Repository initialization on `akshar` branch; added project overview, objectives, directory architecture, analytical pipeline, technology stack, and 4-week milestone roadmap.
 - **Day 2 (11 Nov 2026):** Defined standardized mobility data schema and data dictionary (`ping_id`, `device_hash`, `h3_index`, `dwell_time_sec`) and documented core retail business use cases.
 - **Day 3 (12 Nov 2026):** Specified geospatial data quality and validation rules (GPS accuracy thresholding, deduplication, velocity filtering, and dwell time bounds).
+- **Day 4 (13 Nov 2026):** Formulated spatial feature extraction protocol (multi-resolution H3 hexagonal indexing, cyclical temporal encodings, and mobility behavioral vectors).
 
 ---
 
