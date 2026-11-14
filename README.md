@@ -156,6 +156,24 @@ To transform filtered mobility pings into predictive and analytical signals, the
 
 ---
 
+## 🗺️ Exploratory Spatial Data Analysis (ESDA) Framework
+
+The exploratory phase systematically detects foot-traffic patterns, retail corridors, and spatial dependency:
+
+### 1. Spatial Autocorrelation & Hotspot Detection
+- **Global Moran’s $I$:** Formulate spatial weight matrices $W$ (Queen contiguity and $k$-nearest neighbors) to test whether store footfall exhibits statistically significant spatial clustering:
+  $$I = \frac{N}{\sum_{i}\sum_{j}w_{ij}} \frac{\sum_{i}\sum_{j}w_{ij}(x_i - \bar{x})(x_j - \bar{x})}{\sum_{i}(x_i - \bar{x})^2}$$
+- **LISA (Local Indicators of Spatial Association):** Isolate High-High commercial hotspots (high-traffic zones adjacent to busy retail corridors) and Low-High outliers (underperforming stores bordered by active hubs).
+
+### 2. Kernel Density Estimation (KDE) & Isochrone Mapping
+- Compute continuous surface densities across retail corridors with adaptive Gaussian bandwidths.
+- Calculate 5-, 10-, and 15-minute pedestrian and vehicular isochrones around flagship retail POIs to map true walkability access sheds.
+
+### 3. Co-Visitation Network & Store Affinity Matrix
+- Construct a weighted bipartite graph connecting retail destinations via shared customer device paths to evaluate cross-store synergy and co-shopping frequency.
+
+---
+
 ## 💡 Target Business Use Cases
 
 - **Site Selection & Expansion:** Evaluate footfall potential and demographic fit before leasing new retail locations.
@@ -235,6 +253,7 @@ To transform filtered mobility pings into predictive and analytical signals, the
 - **Day 2 (11 Nov 2026):** Defined standardized mobility data schema and data dictionary (`ping_id`, `device_hash`, `h3_index`, `dwell_time_sec`) and documented core retail business use cases.
 - **Day 3 (12 Nov 2026):** Specified geospatial data quality and validation rules (GPS accuracy thresholding, deduplication, velocity filtering, and dwell time bounds).
 - **Day 4 (13 Nov 2026):** Formulated spatial feature extraction protocol (multi-resolution H3 hexagonal indexing, cyclical temporal encodings, and mobility behavioral vectors).
+- **Day 5 (14 Nov 2026):** Designed Exploratory Spatial Data Analysis (ESDA) framework including Moran's I spatial clustering, KDE heatmaps, and co-visitation graph metrics.
 
 ---
 
