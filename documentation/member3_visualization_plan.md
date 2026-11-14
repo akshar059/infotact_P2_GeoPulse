@@ -31,3 +31,4 @@
 * **Day 2 (11 Nov 2026):** Defined frontend dashboard architecture, component hierarchy, and Kepler.gl integration specifications.
 * **Day 3 (12 Nov 2026):** Created core dashboard layout shell and main navigation scaffolding.
 * **Day 4 (13 Nov 2026):** Built responsive dashboard grid UI layout and placeholder KPI metrics cards (MetricsGrid.jsx) for footfall, dwell time, catchments, and overlap rates.
+* **Day 5 (14 Nov 2026):** Developed interactive FilterSidebar.jsx component for store location selection and 24-hour time-window control.
