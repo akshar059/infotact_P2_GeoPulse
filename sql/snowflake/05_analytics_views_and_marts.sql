@@ -1,0 +1,69 @@
+-- ====================================================================
+-- GeoPulse - Snowflake Dimensional Models & Optimization Views
+-- Script: 05_analytics_views_and_marts.sql
+-- Description: Dimensional models, estimated dwell time marts, 
+--              cross-shopping co-visitation matrix, and query optimization.
+-- ====================================================================
+
+USE DATABASE GEOPULSE_DB;
+USE SCHEMA ANALYTICS;
+
+-- 1. Device Dwell-Time Calculation using Window Functions
+CREATE OR REPLACE TABLE GEOPULSE_DB.ANALYTICS.FACT_DEVICE_STORE_SESSIONS AS
+WITH ping_intervals AS (
+    SELECT 
+        v.STORE_ID,
+        v.STORE_NAME,
+        v.STORE_CATEGORY,
+        v.DEVICE_ID,
+        v.TIMESTAMP,
+        v.DISTANCE_TO_STORE_METERS,
+        v.ACTIVITY_TYPE,
+        LAG(v.TIMESTAMP) OVER (
+            PARTITION BY v.STORE_ID, v.DEVICE_ID 
+            ORDER BY v.TIMESTAMP
+        ) AS PREV_TIMESTAMP
+    FROM GEOPULSE_DB.GEOSPATIAL.VW_PINGS_WITHIN_500M_CATCHMENT v
+),
+dwell_segments AS (
+    SELECT 
+        STORE_ID,
+        STORE_NAME,
+        STORE_CATEGORY,
+        DEVICE_ID,
+        DATE(TIMESTAMP) AS VISIT_DATE,
+        TIMESTAMP,
+        DATEDIFF('second', PREV_TIMESTAMP, TIMESTAMP) AS SECONDS_SINCE_LAST_PING
+    FROM ping_intervals
+)
+SELECT 
+    STORE_ID,
+    STORE_NAME,
+    STORE_CATEGORY,
+    DEVICE_ID,
+    VISIT_DATE,
+    COUNT(*) AS TOTAL_STORE_PINGS,
+    MIN(TIMESTAMP) AS SESSION_START_TIME,
+    MAX(TIMESTAMP) AS SESSION_END_TIME,
+    DATEDIFF('second', MIN(TIMESTAMP), MAX(TIMESTAMP)) AS ESTIMATED_DWELL_SECONDS,
+    ROUND(DATEDIFF('second', MIN(TIMESTAMP), MAX(TIMESTAMP)) / 60.0, 2) AS DWELL_MINUTES
+FROM dwell_segments
+GROUP BY STORE_ID, STORE_NAME, STORE_CATEGORY, DEVICE_ID, VISIT_DATE;
+
+-- 2. Cross-Store Co-Visitation & Customer Overlap Matrix
+CREATE OR REPLACE VIEW GEOPULSE_DB.ANALYTICS.VW_CROSS_STORE_AFFINITY AS
+SELECT 
+    a.STORE_NAME AS STORE_A,
+    b.STORE_NAME AS STORE_B,
+    COUNT(DISTINCT a.DEVICE_ID) AS SHARED_UNIQUE_VISITORS
+FROM GEOPULSE_DB.ANALYTICS.FACT_DEVICE_STORE_SESSIONS a
+INNER JOIN GEOPULSE_DB.ANALYTICS.FACT_DEVICE_STORE_SESSIONS b
+    ON a.DEVICE_ID = b.DEVICE_ID
+    AND a.STORE_ID < b.STORE_ID
+    AND a.VISIT_DATE = b.VISIT_DATE
+GROUP BY a.STORE_NAME, b.STORE_NAME
+ORDER BY SHARED_UNIQUE_VISITORS DESC;
+
+-- 3. Optimization Strategy: Add Search Optimization on Spatial and Identifier Columns
+-- ALTER TABLE GEOPULSE_DB.RAW.GPS_MOBILITY_PINGS ADD SEARCH OPTIMIZATION ON EQUALITY(DEVICE_ID, H3_RES9, GEOHASH);
+-- ALTER TABLE GEOPULSE_DB.RAW.RETAIL_STORES ADD SEARCH OPTIMIZATION ON GEO(CATCHMENT_500M_GEOG);

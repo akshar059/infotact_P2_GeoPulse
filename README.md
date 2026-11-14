@@ -47,31 +47,35 @@ As outlined in the Infotact Solutions Project Assignment Letter (**Ref. No.: ITS
 ```text
 infotact_P2_GeoPulse/
 ├── data/
-│   ├── raw/                # Original, immutable raw data dumps
-│   ├── processed/          # Cleaned, transformed, and geocoded datasets
-│   └── external/           # Boundary shapefiles, POI lists, and demographic data
-├── notebooks/
-│   ├── 01_data_ingestion_and_cleaning.ipynb
-│   ├── 02_exploratory_spatial_analysis.ipynb
-│   ├── 03_mobility_patterns_and_clustering.ipynb
-│   └── 04_catchment_and_trade_area_modeling.ipynb
+│   ├── raw/
+│   │   ├── gps_mobility_raw_100k.csv.gz         # 100,000 raw GPS records (13 columns)
+│   │   ├── gps_mobility_raw_100k.parquet        # Columnar Snappy-compressed format
+│   │   ├── retail_stores.csv                    # 12 benchmark retail stores catalog
+│   │   └── retail_stores_catchment_500m.geojson # 500m metric buffer catchment polygons
+│   └── processed/
+│       ├── gps_mobility_cleaned_100k.parquet    # 98,116 validated & cleaned pings
+│       ├── gps_mobility_spatial_joined_100k.parquet # Spatial join with store catchments
+│       ├── validation_audit_report.json         # Automated cleaning audit report
+│       └── store_catchment_kpi_summary.json     # Catchment performance metrics
+├── sql/
+│   └── snowflake/
+│       ├── 01_database_and_schemas.sql          # DB, schemas, warehouse, file formats, stages
+│       ├── 02_raw_tables_ddl.sql                # Tables DDL storing DeviceID, Lat/Lon, Timestamp
+│       ├── 03_staging_and_copy.sql              # COPY INTO pipelines with ST_MAKEPOINT
+│       ├── 04_spatial_catchment_queries.sql     # Native ST_CONTAINS, ST_DISTANCE range queries
+│       └── 05_analytics_views_and_marts.sql     # Dwell time marts & co-visitation matrix
 ├── src/
-│   ├── __init__.py
-│   ├── data_loader.py      # Utilities for ingestion and CRS reprojection
-│   ├── spatial_features.py # Spatial indexing (H3), distance calculations, buffer zones
-│   ├── mobility_metrics.py # Dwell time, visitation frequency, footfall indices
-│   └── visualization.py    # Folium / Plotly map generation routines
-├── dashboard/
-│   ├── app.py              # Streamlit / interactive web application
-│   └── components/         # Dashboard UI modules and filters
-├── reports/
-│   ├── figures/            # Generated charts, maps, and heatmaps
-│   └── final_report.pdf    # Comprehensive project documentation
-├── presentation/
-│   └── GeoPulse_Presentation.pptx
-├── requirements.txt        # Python package dependencies
-├── .gitignore              # Git ignore rules for data, cache, and env files
-└── README.md               # Project documentation and guide
+│   ├── generate_synthetic_gps.py               # Generates 1 lakh GPS mobility records
+│   ├── create_catchments.py                    # Generates 500m geodesic store buffers
+│   ├── data_validation.py                      # 5-stage cleaning & validation pipeline
+│   ├── spatial_join_processor.py               # High-performance R-Tree spatial join processor
+│   ├── sedona_spatial_join.py                  # Distributed Apache Sedona PySpark pipeline
+│   └── snowflake_loader.py                     # Schema validator and SnowSQL orchestrator
+├── docs/
+│   └── member1_data_engineering.md             # Comprehensive Member 1 technical report
+├── requirements.txt                            # Python package dependencies
+├── .gitignore                                  # Git ignore rules
+└── README.md                                   # Master project documentation
 ```
 
 ---
@@ -236,12 +240,60 @@ The exploratory phase systematically detects foot-traffic patterns, retail corri
 
 ---
 
+## 🛠️ Member 1 Deliverables: Data Engineering & Geospatial Pipeline
+
+Detailed technical report available at [`docs/member1_data_engineering.md`](docs/member1_data_engineering.md).
+
+### 1. Synthetic GPS Mobility Dataset Generation
+- **Volume:** **100,000 rows (1 Lakh records)** generated via `python src/generate_synthetic_gps.py`.
+- **Dimensions (13 Columns):** `ping_id`, `device_id`, `latitude`, `longitude`, `timestamp`, `horizontal_accuracy_m`, `altitude_m`, `speed_kmh`, `heading_deg`, `battery_pct`, `activity_type`, `h3_res9`, `geohash`.
+- **Features:** 1,200 unique device trajectories, diurnal shopping peak curves, H3 resolution 9 hexagonal spatial indexing, and realistic retail visit clusters.
+
+### 2. Snowflake Database & Staging Architecture
+Complete SQL infrastructure scripts located in [`sql/snowflake/`](sql/snowflake/):
+- **`01_database_and_schemas.sql`:** Configures `GEOPULSE_WH` warehouse, `GEOPULSE_DB` database, and four layered schemas (`STAGING`, `RAW`, `GEOSPATIAL`, `ANALYTICS`) with compressed file formats (`CSV_GZ`, `PARQUET`).
+- **`02_raw_tables_ddl.sql`:** DDL for `RAW.GPS_MOBILITY_PINGS` (storing `DEVICE_ID`, `LATITUDE`, `LONGITUDE`, `TIMESTAMP`, and native `GEOGRAPHY` objects) with clustering keys on `(DATE(TIMESTAMP), H3_RES9, DEVICE_ID)` and `RAW.RETAIL_STORES`.
+- **`03_staging_and_copy.sql`:** Staging commands and `COPY INTO` data loading pipelines with real-time `ST_MAKEPOINT` and `ST_BUFFER` geometry generation.
+- **`04_spatial_catchment_queries.sql`:** Native Snowflake spatial range queries (`ST_CONTAINS`, `ST_DISTANCE`) for catchment footfall analytics.
+- **`05_analytics_views_and_marts.sql`:** Dimensional models, windowed dwell-time session mart (`FACT_DEVICE_STORE_SESSIONS`), and cross-store co-visitation matrix (`VW_CROSS_STORE_AFFINITY`).
+
+### 3. 500-Meter Store Catchment Buffers
+- Script: `python src/create_catchments.py`
+- Established 12 benchmark retail stores across Bengaluru commercial hubs.
+- Reprojected to planar metric CRS **EPSG:32643 (UTM Zone 43N)** and created exact **500-meter circular buffer polygons** ($\text{Area} \approx 784,137\text{ m}^2$).
+- Exported store catalog to `data/raw/retail_stores.csv` and catchment boundaries to `data/raw/retail_stores_catchment_500m.geojson`.
+
+### 4. Apache Sedona Distributed Spatial Join & Local Processor
+- **Distributed Apache Sedona (`src/sedona_spatial_join.py`):** Configures Kryo serializer, R-Tree spatial indexing, and KDB-Tree spatial partitioning for distributed Point-in-Polygon range joins (`ST_Contains`).
+- **Local Spatial Processor (`src/spatial_join_processor.py`):** Executes R-Tree (STRtree) metric spatial join across 98k pings, calculating exact Euclidean distances to store centers in **< 3 seconds**:
+  - **In-Catchment Pings Captured:** **31,881** (32.39% capture rate)
+  - **Unique Devices Reached:** **1,200**
+  - **Top Stores:** Nexus Koramangala (4,535 visits), Decathlon Electronic City (4,349 visits), Reliance Digital Bellandur (3,324 visits).
+
+### 5. Geospatial Data Cleaning & Validation Pipeline
+- Script: `python src/data_validation.py`
+- Executed 5 automated validation checks:
+  - Bounding box and coordinate validity check (Lat: `[12.50, 13.50]`, Lon: `[77.00, 78.00]`).
+  - GPS accuracy filtering (`horizontal_accuracy_m <= 50.0m`): Filtered -1,514 drifting pings.
+  - Teleportation & velocity filtering (`speed_kmh <= 120.0 km/h`): Filtered -262 jump anomalies.
+  - Deduplication on `(device_id, timestamp)`: Dropped -108 redundant pings.
+  - **Final Validated Dataset:** **98,116 rows (98.12% clean retention)** saved to `data/processed/gps_mobility_cleaned_100k.parquet`.
+
+### 6. Spatial Processing Optimizations
+- **R-Tree / KDB-Tree Indexing:** Replaces $O(M \times N)$ exhaustive comparisons with $O(N \log M)$ logarithmic tree search.
+- **Planar UTM Projection (EPSG:32643):** Vectorized Cartesian Euclidean distance calculations avoid slow spherical trigonometry.
+- **Hierarchical Discrete Hexagonal Indexing (Uber H3 Res 9):** Provides $O(1)$ spatial binning for fast spatial aggregations.
+- **Columnar Parquet & Compressed CSV:** 78% reduction in raw file size.
+- **Snowflake Micro-partition Clustering:** `CLUSTER BY (DATE(TIMESTAMP), H3_RES9, DEVICE_ID)` and Search Optimization for sub-second analytical filtering.
+
+---
+
 ## 📅 Project Roadmap & Milestones
 
 | Week | Focus Area | Deliverables | Status |
 | :---: | :--- | :--- | :---: |
-| **Week 1** | Project Setup, Data Ingestion & Cleaning | Environment configuration, raw data validation, coordinate transformations | 🟡 In Progress |
-| **Week 2** | Exploratory Spatial Data Analysis | Spatial distribution, foot traffic heatmaps, temporal pattern identification | ⚪ Planned |
+| **Week 1** | Project Setup, Data Ingestion & Cleaning | Environment configuration, raw data validation, coordinate transformations | 🟢 Completed |
+| **Week 2** | Exploratory Spatial Data Analysis | Spatial distribution, foot traffic heatmaps, temporal pattern identification | 🟡 In Progress |
 | **Week 3** | Mobility Metrics & Catchment Analysis | Dwell time analytics, customer trade area modeling, clustering | ⚪ Planned |
 | **Week 4** | Dashboard & Final Presentation | Interactive Streamlit app, PPT, documentation, and executive report | ⚪ Planned |
 
@@ -253,7 +305,13 @@ The exploratory phase systematically detects foot-traffic patterns, retail corri
 - **Day 2 (11 Nov 2026):** Defined standardized mobility data schema and data dictionary (`ping_id`, `device_hash`, `h3_index`, `dwell_time_sec`) and documented core retail business use cases.
 - **Day 3 (12 Nov 2026):** Specified geospatial data quality and validation rules (GPS accuracy thresholding, deduplication, velocity filtering, and dwell time bounds).
 - **Day 4 (13 Nov 2026):** Formulated spatial feature extraction protocol (multi-resolution H3 hexagonal indexing, cyclical temporal encodings, and mobility behavioral vectors).
-- **Day 5 (14 Nov 2026):** Designed Exploratory Spatial Data Analysis (ESDA) framework including Moran's I spatial clustering, KDE heatmaps, and co-visitation graph metrics.
+- **Day 5 (14 Nov 2026):** Completed **Member 1 (Data Engineering)** end-to-end deliverables:
+  - Generated 100,000 synthetic GPS mobility records across 13 columns.
+  - Set up Snowflake database, warehouse, schemas, staging, and clustered spatial DDL.
+  - Built 500-meter store catchment polygons across 12 benchmark retail locations.
+  - Developed Apache Sedona distributed spatial join pipeline and local R-Tree spatial join processor (31,881 in-catchment visits captured).
+  - Implemented 5-stage geospatial cleaning & validation pipeline (98.12% clean retention rate).
+  - Documented spatial optimizations (R-Tree, UTM planar projection, H3 indexing, Snowflake clustering).
 
 ---
 

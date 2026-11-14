@@ -1,0 +1,129 @@
+{
+  "total_pings_evaluated": 98426,
+  "total_pings_in_catchments": 31881,
+  "catchment_capture_rate_pct": 32.39,
+  "unique_devices_in_catchments": 1200,
+  "stores_analyzed": 12,
+  "store_breakdown": {
+    "STORE_001": {
+      "store_name": "Nexus Koramangala Mall",
+      "category": "Mall & Entertainment",
+      "total_visits": 4535,
+      "unique_visitors": 1166,
+      "avg_distance_m": 293.99,
+      "median_distance_m": 296.91,
+      "in_store_activity_pct": 43.77,
+      "pedestrian_activity_pct": 20.49
+    },
+    "STORE_002": {
+      "store_name": "Decathlon Electronic City",
+      "category": "Sports & Fitness",
+      "total_visits": 4349,
+      "unique_visitors": 1169,
+      "avg_distance_m": 294.2,
+      "median_distance_m": 301.84,
+      "in_store_activity_pct": 44.08,
+      "pedestrian_activity_pct": 20.3
+    },
+    "STORE_003": {
+      "store_name": "Nature's Basket HSR Layout",
+      "category": "Gourmet Grocery",
+      "total_visits": 3157,
+      "unique_visitors": 1112,
+      "avg_distance_m": 293.39,
+      "median_distance_m": 301.37,
+      "in_store_activity_pct": 44.76,
+      "pedestrian_activity_pct": 20.62
+    },
+    "STORE_004": {
+      "store_name": "Reliance Digital Bellandur",
+      "category": "Consumer Electronics",
+      "total_visits": 3324,
+      "unique_visitors": 1111,
+      "avg_distance_m": 302.78,
+      "median_distance_m": 311.03,
+      "in_store_activity_pct": 44.13,
+      "pedestrian_activity_pct": 21.36
+    },
+    "STORE_005": {
+      "store_name": "Zara Central Commercial St",
+      "category": "Fashion & Apparel",
+      "total_visits": 2560,
+      "unique_visitors": 1049,
+      "avg_distance_m": 298.14,
+      "median_distance_m": 303.53,
+      "in_store_activity_pct": 43.87,
+      "pedestrian_activity_pct": 18.83
+    },
+    "STORE_006": {
+      "store_name": "Croma Electronic City Phase 1",
+      "category": "Consumer Electronics",
+      "total_visits": 3111,
+      "unique_visitors": 1101,
+      "avg_distance_m": 297.3,
+      "median_distance_m": 306.46,
+      "in_store_activity_pct": 45.0,
+      "pedestrian_activity_pct": 18.26
+    },
+    "STORE_007": {
+      "store_name": "Star Hypermarket Sarjapur",
+      "category": "Hypermarket",
+      "total_visits": 2443,
+      "unique_visitors": 1047,
+      "avg_distance_m": 297.68,
+      "median_distance_m": 306.69,
+      "in_store_activity_pct": 42.9,
+      "pedestrian_activity_pct": 20.79
+    },
+    "STORE_008": {
+      "store_name": "Westside Koramangala 80ft Rd",
+      "category": "Fashion & Apparel",
+      "total_visits": 2479,
+      "unique_visitors": 1028,
+      "avg_distance_m": 295.95,
+      "median_distance_m": 302.8,
+      "in_store_activity_pct": 42.68,
+      "pedestrian_activity_pct": 20.77
+    },
+    "STORE_009": {
+      "store_name": "Blue Tokai Roastery BTM",
+      "category": "Cafe & QSR",
+      "total_visits": 1946,
+      "unique_visitors": 978,
+      "avg_distance_m": 293.71,
+      "median_distance_m": 300.78,
+      "in_store_activity_pct": 42.65,
+      "pedestrian_activity_pct": 21.17
+    },
+    "STORE_010": {
+      "store_name": "Forum South Bengaluru Mall",
+      "category": "Mall & Entertainment",
+      "total_visits": 1631,
+      "unique_visitors": 908,
+      "avg_distance_m": 303.39,
+      "median_distance_m": 311.84,
+      "in_store_activity_pct": 44.57,
+      "pedestrian_activity_pct": 20.6
+    },
+    "STORE_011": {
+      "store_name": "Total Retail Hub Sarjapur",
+      "category": "Superstore",
+      "total_visits": 1698,
+      "unique_visitors": 894,
+      "avg_distance_m": 315.15,
+      "median_distance_m": 326.65,
+      "in_store_activity_pct": 41.22,
+      "pedestrian_activity_pct": 20.91
+    },
+    "STORE_012": {
+      "store_name": "Phoenix Marketcity Whitefield",
+      "category": "Mall & Entertainment",
+      "total_visits": 648,
+      "unique_visitors": 497,
+      "avg_distance_m": 306.87,
+      "median_distance_m": 319.34,
+      "in_store_activity_pct": 38.43,
+      "pedestrian_activity_pct": 21.3
+    }
+  }
+}

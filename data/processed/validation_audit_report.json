@@ -1,0 +1,53 @@
+{
+  "initial_rows": 100000,
+  "initial_columns": [
+    "ping_id",
+    "device_id",
+    "latitude",
+    "longitude",
+    "timestamp",
+    "horizontal_accuracy_m",
+    "altitude_m",
+    "speed_kmh",
+    "heading_deg",
+    "battery_pct",
+    "activity_type",
+    "h3_res9",
+    "geohash"
+  ],
+  "checks": {
+    "null_coordinates": {
+      "dropped_rows": 0,
+      "null_counts": {
+        "ping_id": 0,
+        "device_id": 0,
+        "latitude": 0,
+        "longitude": 0,
+        "timestamp": 0,
+        "horizontal_accuracy_m": 0,
+        "altitude_m": 0,
+        "speed_kmh": 0,
+        "heading_deg": 0,
+        "battery_pct": 0,
+        "activity_type": 0,
+        "h3_res9": 0,
+        "geohash": 0
+      }
+    },
+    "out_of_bounds_coordinates": {
+      "dropped_rows": 0
+    },
+    "low_accuracy_pings_gt_50m": {
+      "dropped_rows": 1514
+    },
+    "teleportation_speed_anomalies_gt_120kmh": {
+      "dropped_rows": 262
+    },
+    "duplicate_pings": {
+      "dropped_rows": 108
+    }
+  },
+  "final_rows": 98116,
+  "total_dropped_rows": 1884,
+  "retention_rate_pct": 98.12
+}
