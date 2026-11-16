@@ -33,3 +33,7 @@
 * **Day 4 (13 Nov 2026):** Built responsive dashboard grid UI layout and placeholder KPI metrics cards (MetricsGrid.jsx) for footfall, dwell time, catchments, and overlap rates.
 * **Day 5 (14 Nov 2026):** Developed interactive FilterSidebar.jsx component for store location selection and 24-hour time-window control.
 * **Day 6 (15 Nov 2026):** Conducted Week 1 structural validation check, verified component refactoring across dashboard and map modules, and updated execution tracking.
+- **Day 7 (16 Nov 2026) — Completed:**
+  - Created `src/utils/spatialParser.js` to validate coordinate bounds, filter invalid records, and compute centroid viewport centers.
+  - Created `src/hooks/useSpatialState.js` to manage parsed/filtered spatial datasets, map viewport state, category selection, and active layer toggles.
+  - Verified parser and centroid logic locally via Node.js (`v26.13.1`) and browser DevTools console.
