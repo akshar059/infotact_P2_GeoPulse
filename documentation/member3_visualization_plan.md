@@ -37,3 +37,5 @@
   - Created `src/utils/spatialParser.js` to validate coordinate bounds, filter invalid records, and compute centroid viewport centers.
   - Created `src/hooks/useSpatialState.js` to manage parsed/filtered spatial datasets, map viewport state, category selection, and active layer toggles.
   - Verified parser and centroid logic locally via Node.js (`v26.13.1`) and browser DevTools console.
+  * **Day 8 (17 Nov 2026):** Initialized `package.json` and `.gitignore`, installed core React, Redux, and Kepler.gl dependencies (`@kepler.gl/components`, `@kepler.gl/reducers`), configured the Redux store (`src/store/index.js`), and embedded the core `<KeplerGl />` map component with responsive viewport sizing inside `src/components/map/SpatialMapViewer.jsx`.
+  

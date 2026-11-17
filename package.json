@@ -1,0 +1,30 @@
+{
+  "name": "infotact-month-2-project",
+  "version": "1.0.0",
+  "description": "Initialized the GeoPulse project repository structure and configured environment for dashboard visualization module.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akshar059/infotact_P2_GeoPulse.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/akshar059/infotact_P2_GeoPulse/issues"
+  },
+  "homepage": "https://github.com/akshar059/infotact_P2_GeoPulse#readme",
+  "dependencies": {
+    "@kepler.gl/components": "^3.3.0-alpha.22",
+    "@kepler.gl/reducers": "^3.3.0-alpha.22",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-redux": "^9.3.1",
+    "redux": "^5.0.1",
+    "styled-components": "^6.6.0"
+  }
+}
