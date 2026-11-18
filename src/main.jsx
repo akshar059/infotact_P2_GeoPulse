@@ -1,10 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { Provider } from 'react-redux';
+import store from './store';
 import SpatialMapViewer from './components/map/SpatialMapViewer';
-import './index.css'; // <--- Make sure this line is added
+import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <SpatialMapViewer />
+    <Provider store={store}>
+      <SpatialMapViewer />
+    </Provider>
   </React.StrictMode>
 );

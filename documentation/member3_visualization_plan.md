@@ -19,8 +19,8 @@
 
 | Timeline | Phase | Key Milestones | Status |
 | :--- | :--- | :--- | :--- |
-| **Week 1** (10 Nov – 16 Nov) | UI Foundation & Layout | React setup, dashboard shell, KPI cards (MetricsGrid), filter sidebar | In Progress |
-| **Week 2** (17 Nov – 23 Nov) | Map Engine & Data Binding | Kepler.gl integration, map controls, binding processed footfall data | Planned |
+| **Week 1** (10 Nov – 16 Nov) | UI Foundation & Layout | React setup, dashboard shell, KPI cards (MetricsGrid), filter sidebar | Done |
+| **Week 2** (17 Nov – 23 Nov) | Map Engine & Data Binding | Kepler.gl integration, map controls, binding processed footfall data | In Progress |
 | **Week 3** (24 Nov – 30 Nov) | 3D Grids & Time Controls | 3D H3 hexagon layers, 24-hour timeline slider, movement arc layers | Planned |
 | **Week 4** (01 Dec – 08 Dec) | Analytics & Final Polish | Peak hour charts, store ranking tables, UI polish, final demo & PPT | Planned |
 
@@ -33,9 +33,12 @@
 * **Day 4 (13 Nov 2026):** Built responsive dashboard grid UI layout and placeholder KPI metrics cards (MetricsGrid.jsx) for footfall, dwell time, catchments, and overlap rates.
 * **Day 5 (14 Nov 2026):** Developed interactive FilterSidebar.jsx component for store location selection and 24-hour time-window control.
 * **Day 6 (15 Nov 2026):** Conducted Week 1 structural validation check, verified component refactoring across dashboard and map modules, and updated execution tracking.
-- **Day 7 (16 Nov 2026) — Completed:**
+* **Day 7 (16 Nov 2026) — Completed:**
   - Created `src/utils/spatialParser.js` to validate coordinate bounds, filter invalid records, and compute centroid viewport centers.
   - Created `src/hooks/useSpatialState.js` to manage parsed/filtered spatial datasets, map viewport state, category selection, and active layer toggles.
   - Verified parser and centroid logic locally via Node.js (`v26.13.1`) and browser DevTools console.
-  * **Day 8 (17 Nov 2026):** Initialized `package.json` and `.gitignore`, installed core React, Redux, and Kepler.gl dependencies (`@kepler.gl/components`, `@kepler.gl/reducers`), configured the Redux store (`src/store/index.js`), and embedded the core `<KeplerGl />` map component with responsive viewport sizing inside `src/components/map/SpatialMapViewer.jsx`.
-  
+* **Day 8 (17 Nov 2026):** Initialized `package.json` and `.gitignore`, installed core React, Redux, and Kepler.gl dependencies (`@kepler.gl/components`, `@kepler.gl/reducers`), configured the Redux store (`src/store/index.js`), and embedded the core `<KeplerGl />` map component with responsive viewport sizing inside `src/components/map/SpatialMapViewer.jsx`.
+* **Day 9 (Nov 18, 2026) – Map State Management & Base Map Setup:**
+  - Configured Redux store (`src/store/index.js`) with `keplerGlReducer.initialState()` targeting Mumbai coordinates (`19.0760, 72.8777`, zoom `11`) and `enhanceReduxMiddleware` for asynchronous style fetching.
+  - Integrated Carto Voyager (OpenStreetMap) and Carto Dark Matter base map styles in `SpatialMapViewer.jsx` alongside MapLibre GL CSS (`maplibre-gl/dist/maplibre-gl.css`) in `src/main.jsx`.
+  - Verified full rendering of Mumbai and Navi Mumbai base map tiles at `http://localhost:5173/`.
