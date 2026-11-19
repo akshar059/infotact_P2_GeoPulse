@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import KeplerGl from '@kepler.gl/components';
 import { useDispatch } from 'react-redux';
-import { updateMap, mapStyleChange } from '@kepler.gl/actions';
+import { updateMap, mapStyleChange, addDataToMap } from '@kepler.gl/actions';
+import { getProcessedFootfallDataset } from '../../utils/spatialDataLoader';
 
 const CUSTOM_MAP_STYLES = [
   {
@@ -21,8 +22,8 @@ const CUSTOM_MAP_STYLES = [
 const SpatialMapViewer = () => {
   const dispatch = useDispatch();
   const [dimensions, setDimensions] = useState({
-    width: window.innerWidth - 10,
-    height: window.innerHeight - 10
+    width: window.innerWidth,
+    height: window.innerHeight
   });
 
   useEffect(() => {
@@ -34,7 +35,6 @@ const SpatialMapViewer = () => {
     };
 
     window.addEventListener('resize', handleResize);
-    // Trigger a delayed resize event to force Kepler WebGL canvas to paint tiles
     const timer = setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
     }, 200);
@@ -46,16 +46,24 @@ const SpatialMapViewer = () => {
   }, []);
 
   useEffect(() => {
+    const { center, payload } = getProcessedFootfallDataset();
+
+    // 1. Center map using computeDataCenter from spatialParser.js
     dispatch(
       updateMap({
-        latitude: 19.0760,
-        longitude: 72.8777,
-        zoom: 11,
+        latitude: center.latitude,
+        longitude: center.longitude,
+        zoom: center.zoom,
         pitch: 0,
         bearing: 0
       })
     );
+
+    // 2. Apply Carto Voyager street base map
     dispatch(mapStyleChange('carto_voyager'));
+
+    // 3. Load parsed dataset into Kepler.gl
+    dispatch(addDataToMap(payload));
   }, [dispatch]);
 
   return (

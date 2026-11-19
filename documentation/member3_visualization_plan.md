@@ -42,3 +42,7 @@
   - Configured Redux store (`src/store/index.js`) with `keplerGlReducer.initialState()` targeting Mumbai coordinates (`19.0760, 72.8777`, zoom `11`) and `enhanceReduxMiddleware` for asynchronous style fetching.
   - Integrated Carto Voyager (OpenStreetMap) and Carto Dark Matter base map styles in `SpatialMapViewer.jsx` alongside MapLibre GL CSS (`maplibre-gl/dist/maplibre-gl.css`) in `src/main.jsx`.
   - Verified full rendering of Mumbai and Navi Mumbai base map tiles at `http://localhost:5173/`.
+* **[x] **Day 10 (Nov 19, 2026) – Spatial Dataset Schema & Automated Data Ingestion:**
+  - Created `src/utils/spatialDataLoader.js` integrating with the existing `parseSpatialDataset` and `computeDataCenter` functions in `src/utils/spatialParser.js` without modifying parser logic.
+  - Defined structured Mumbai retail footfall records (`MUMBAI_FOOTFALL_DATA`) across 8 key zones (Bandra, Lower Parel, BKC, Andheri, Powai, Colaba, Vashi, Thane) using `processRowObject` from `@kepler.gl/processors`.
+  - Connected automated dataset dispatching via `addDataToMap` in `SpatialMapViewer.jsx`, verified point layer rendering and timestamp playback timeline at `http://localhost:5173/`.
