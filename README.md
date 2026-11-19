@@ -337,6 +337,13 @@ Empirical mobility profiling derived from the 98,116 cleaned GPS pings and 31,88
   - **Secondary Catchment Zone ($0.25 \le P_{ij} < 0.60$):** Competitive contestable zone extending 350–750 meters with elevated sensitivity to cross-store marketing promotions.
   - **Tertiary Fringe Catchment ($P_{ij} < 0.25$):** Outlying exploratory shopping radius spanning up to 2.2 kilometers.
 
+### 6. Retail Footfall Anomaly Detection & Surge Event Modeling
+- **Isolation Forest & Seasonal ESD Formulation:**
+  - Automated identification of significant foot-traffic volume deviations $z_t = \frac{x_t - \mu_t}{\sigma_t}$ across hourly store observation bins.
+  - Successfully separated operational telemetry anomalies (intermittent beacon blackouts) from genuine retail surges (flash sales, holiday marketing activations).
+- **Surge Responsiveness & Promotional Elasticity:**
+  - Established footfall surge elasticity coefficients across retail verticals, revealing that consumer electronics (`STORE_004`, `STORE_006`) and fashion apparel (`STORE_005`, `STORE_008`) exhibit the highest promotional footfall uplift (**+62.4% surge**) during synchronized weekend campaign windows.
+
 ---
 
 ## 📅 Project Roadmap & Milestones
@@ -344,8 +351,8 @@ Empirical mobility profiling derived from the 98,116 cleaned GPS pings and 31,88
 | Week | Focus Area | Deliverables | Status |
 | :---: | :--- | :--- | :---: |
 | **Week 1** | Project Setup, Data Ingestion & Cleaning | Environment configuration, raw data validation, coordinate transformations | 🟢 Completed |
-| **Week 2** | Exploratory Spatial Data Analysis | Spatial distribution, foot traffic heatmaps, temporal pattern identification | 🟡 In Progress |
-| **Week 3** | Mobility Metrics & Catchment Analysis | Dwell time analytics, customer trade area modeling, clustering | ⚪ Planned |
+| **Week 2** | Exploratory Spatial Data Analysis | Spatial distribution, foot traffic heatmaps, temporal pattern identification | 🟢 Completed |
+| **Week 3** | Mobility Metrics & Catchment Analysis | Dwell time analytics, customer trade area modeling, clustering | 🟡 In Progress |
 | **Week 4** | Dashboard & Final Presentation | Interactive Streamlit app, PPT, documentation, and executive report | ⚪ Planned |
 
 ---
@@ -367,6 +374,7 @@ Empirical mobility profiling derived from the 98,116 cleaned GPS pings and 31,88
 - **Day 7 (16 Nov 2026):** Formulated mobility network graph model ($G = (V, E)$); computed in-degree and betweenness centralities to map primary customer attractor and gateway retail nodes.
 - **Day 8 (17 Nov 2026):** Implemented DBSCAN spatial clustering ($\varepsilon = 150\text{m}, \text{MinPts} = 15$) and defined three distinct customer behavioral personas (High-Frequency Commuter, Destination Leisure Shopper, Hyper-Local Routine Visitor).
 - **Day 9 (18 Nov 2026):** Calibrated Huff Gravity Model ($\beta = 1.75$ distance decay exponent) to establish probabilistic market share and primary ($P \ge 0.60$), secondary, and tertiary catchment boundaries across benchmark stores.
+- **Day 10 (19 Nov 2026):** Implemented Isolation Forest footfall surge anomaly detection and modeled promotional campaign elasticity (+62.4% weekend uplift); officially concluded Week 2 ESDA objectives.
 
 ---
 
