@@ -1,5 +1,7 @@
-import { processRowObject } from '@kepler.gl/processors';
+import { processRowObject, processGeojson } from '@kepler.gl/processors';
 import { parseSpatialDataset, computeDataCenter } from './spatialParser';
+
+export const CATCHMENT_DATASET_ID = 'mumbai_catchment_500m';
 
 export const MUMBAI_FOOTFALL_DATA = [
   {
@@ -51,7 +53,7 @@ export const MUMBAI_FOOTFALL_DATA = [
     id: 'MUM_006',
     store_name: 'Colaba Causeway Heritage',
     category: 'South Mumbai',
-    latitude: 18.9220,
+    latitude: 18.922,
     longitude: 72.8347,
     value: 1540,
     timestamp: '2026-11-19 16:00:00',
@@ -76,8 +78,83 @@ export const MUMBAI_FOOTFALL_DATA = [
   },
 ];
 
+function createCirclePolygonGeoJSON(lng, lat, radiusMeters = 500, steps = 48) {
+  const earthRadius = 6371000;
+  const angularDistance = radiusMeters / earthRadius;
+  const latRad = (lat * Math.PI) / 180;
+  const lngRad = (lng * Math.PI) / 180;
+  const ring = [];
+
+  for (let i = 0; i <= steps; i++) {
+    const bearing = (2 * Math.PI * i) / steps;
+    const destLatRad = Math.asin(
+      Math.sin(latRad) * Math.cos(angularDistance) +
+        Math.cos(latRad) * Math.sin(angularDistance) * Math.cos(bearing)
+    );
+    const destLngRad =
+      lngRad +
+      Math.atan2(
+        Math.sin(bearing) * Math.sin(angularDistance) * Math.cos(latRad),
+        Math.cos(angularDistance) - Math.sin(latRad) * Math.sin(destLatRad)
+      );
+
+    ring.push([(destLngRad * 180) / Math.PI, (destLatRad * 180) / Math.PI]);
+  }
+
+  return {
+    type: 'Polygon',
+    coordinates: [ring],
+  };
+}
+
+export function buildCatchmentGeoJson(
+  rawData = MUMBAI_FOOTFALL_DATA,
+  radiusMeters = 500
+) {
+  return {
+    type: 'FeatureCollection',
+    features: rawData.map((row) => ({
+      type: 'Feature',
+      geometry: createCirclePolygonGeoJSON(
+        Number(row.longitude),
+        Number(row.latitude),
+        radiusMeters
+      ),
+      properties: {
+        id: row.id,
+        store_name: row.store_name,
+        category: row.category,
+        value: Number(row.value),
+        radius_m: radiusMeters,
+        timestamp: row.timestamp,
+      },
+    })),
+  };
+}
+
+export function getProcessedCatchmentDataset(
+  rawData = MUMBAI_FOOTFALL_DATA,
+  radiusMeters = 500
+) {
+  const featureCollection = buildCatchmentGeoJson(rawData, radiusMeters);
+  const processedGeojson = processGeojson(featureCollection);
+
+  return {
+    datasets: {
+      info: {
+        label: '500m Store Catchments',
+        id: CATCHMENT_DATASET_ID,
+      },
+      data: processedGeojson,
+    },
+    options: {
+      centerMap: false,
+      readOnly: false,
+    },
+  };
+}
+
 export function getProcessedFootfallDataset(rawData = MUMBAI_FOOTFALL_DATA) {
-  // Uses your existing untouched spatialParser.js functions
   const parsedPoints = parseSpatialDataset(rawData);
   const center = computeDataCenter(parsedPoints);
   const processedData = processRowObject(parsedPoints);

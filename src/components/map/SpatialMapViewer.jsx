@@ -6,7 +6,10 @@ import {
   mapStyleChange,
   addDataToMap,
 } from '@kepler.gl/actions';
-import { getProcessedFootfallDataset } from '../../utils/spatialDataLoader';
+import {
+  getProcessedFootfallDataset,
+  getProcessedCatchmentDataset,
+} from '../../utils/spatialDataLoader';
 import { createGeoPulseMapConfig } from '../../utils/mapConfig';
 
 const CUSTOM_MAP_STYLES = [
@@ -57,15 +60,22 @@ const SpatialMapViewer = () => {
 
   useEffect(() => {
     const { center, payload } = getProcessedFootfallDataset();
+    const catchmentPayload = getProcessedCatchmentDataset(undefined, 500);
+
     const dataId = payload.datasets.info.id;
-    const mapConfig = createGeoPulseMapConfig(dataId, center);
+    const catchmentDataId = catchmentPayload.datasets.info.id;
+    const mapConfig = createGeoPulseMapConfig(dataId, center, catchmentDataId);
 
     mapConfig.config.mapStyle.mapStyles = mapStylesById;
 
     dispatch(
       addDataToMap({
-        ...payload,
+        datasets: [payload.datasets, catchmentPayload.datasets],
         config: mapConfig,
+        options: {
+          centerMap: false,
+          readOnly: false,
+        },
       })
     );
 

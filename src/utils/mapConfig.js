@@ -1,6 +1,7 @@
 export function createGeoPulseMapConfig(
   dataId = 'mumbai_footfall_data',
-  mapState = {}
+  mapState = {},
+  catchmentDataId = 'mumbai_catchment_500m'
 ) {
   const defaultColors = [
     '#4C0035',
@@ -50,6 +51,57 @@ export function createGeoPulseMapConfig(
                 type: 'integer',
               },
               weightScale: 'linear',
+            },
+          },
+          {
+            id: 'geopulse_store_catchment_500m',
+            type: 'geojson',
+            config: {
+              dataId: catchmentDataId,
+              columnMode: 'geojson',
+              label: '500m Store Catchment',
+              color: [0, 180, 216],
+              highlightColor: [252, 242, 26, 255],
+              columns: {
+                geojson: '_geojson',
+              },
+              isVisible: true,
+              visConfig: {
+                opacity: 0.22,
+                outline: true,
+                thickness: 2,
+                strokeColor: [0, 229, 255],
+                colorRange: {
+                  name: 'Global Warming',
+                  type: 'sequential',
+                  category: 'Uber',
+                  colors: defaultColors,
+                },
+                strokeColorRange: {
+                  name: 'Global Warming',
+                  type: 'sequential',
+                  category: 'Uber',
+                  colors: defaultColors,
+                },
+                radius: 10,
+                filled: true,
+                height: 0,
+                wireframe: false,
+                allowHover: true,
+                showHighlightColor: true,
+              },
+              hidden: false,
+              textLabel: [],
+            },
+            visualChannels: {
+              colorField: null,
+              colorScale: 'quantile',
+              strokeColorField: null,
+              strokeColorScale: 'quantile',
+              sizeField: null,
+              sizeScale: 'linear',
+              heightField: null,
+              heightScale: 'linear',
             },
           },
           {
@@ -126,6 +178,13 @@ export function createGeoPulseMapConfig(
                 { name: 'category', format: null },
                 { name: 'timestamp', format: 'L LTS' },
               ],
+              [catchmentDataId]: [
+                { name: 'id', format: null },
+                { name: 'store_name', format: null },
+                { name: 'category', format: null },
+                { name: 'value', format: null },
+                { name: 'radius_m', format: null },
+              ],
             },
             timezone: null,
             compareMode: false,
@@ -169,7 +228,11 @@ export function createGeoPulseMapConfig(
           features: [],
           visible: true,
         },
-        layerOrder: ['geopulse_store_points', 'geopulse_footfall_heatmap'],
+        layerOrder: [
+          'geopulse_store_points',
+          'geopulse_store_catchment_500m',
+          'geopulse_footfall_heatmap',
+        ],
         groupBys: [],
         joins: [],
       },
