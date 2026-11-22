@@ -55,6 +55,6 @@
   - Polygon Layer & Styling: Added the `geopulse_store_catchment_500m` (`geojson`) layer in `src/utils/mapConfig.js` with semi-transparent cyan fill (`opacity: 0.22`), crisp outline border (`strokeColor: [0, 229, 255]`, `thickness: 2`), and interactive hover tooltips displaying `id`, `store_name`, `category`, `value`, and `radius_m`.
   - Multi-Layer Rendering & Z-Order: Bound both `mumbai_footfall_data` and `mumbai_catchment_500m` in `SpatialMapViewer.jsx` via `addDataToMap`, configuring `layerOrder` (`geopulse_store_points` → `geopulse_store_catchment_500m` → `geopulse_footfall_heatmap`) for clear spatial readability.
 * **Day 13 — Spatial Map Viewer & Data Notes**
-- Datasets Used: `retail_stores.csv` (12 Bengaluru stores) and `retail_stores_catchment_500m.geojson` (12 catchments) render smoothly in Kepler.gl (`Footfall Intensity`, `500m Store Catchments`, `Retail Store Locations`).
-- Viewer Updates: Added `loading`, `empty`, `failed`, and `succeeded` states, retry button, `AbortController` cleanup, and memoized props in `SpatialMapViewer.jsx` and `spatialDataLoader.js`.
-- Data Strategy: Kept heavy/processed files (`.csv.gz`, `.parquet`, `.json`, and ~98k mobility rows) out of live map rendering to keep the browser fast and lag-free.
+  - Datasets Used: `retail_stores.csv` (12 Bengaluru stores) and `retail_stores_catchment_500m.geojson` (12 catchments) render smoothly in Kepler.gl (`Footfall Intensity`, `500m Store Catchments`, `Retail Store Locations`).
+  - Viewer Updates: Added `loading`, `empty`, `failed`, and `succeeded` states, retry button, `AbortController` cleanup, and memoized props in `SpatialMapViewer.jsx` and `spatialDataLoader.js`.
+  - Data Strategy: Kept heavy/processed files (`.csv.gz`, `.parquet`, `.json`, and ~98k mobility rows) out of live map rendering to keep the browser fast and lag-free.
