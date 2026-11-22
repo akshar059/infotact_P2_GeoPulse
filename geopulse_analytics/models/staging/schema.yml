@@ -1,0 +1,33 @@
+﻿version: 2
+
+sources:
+  - name: gps_data
+    description: Raw GPS event data source for GeoPulse analytics.
+    tables:
+      - name: gps_events
+        description: GPS events containing visitor, store, timestamp, and location information.
+
+models:
+  - name: stg_gps_events
+    description: Standardized staging model for GPS event records.
+    columns:
+      - name: visitor_id
+        description: Anonymized visitor identifier.
+        tests:
+          - not_null
+
+      - name: store_id
+        description: Identifier of the store associated with the event.
+        tests:
+          - not_null
+
+      - name: event_timestamp
+        description: Timestamp of the GPS event.
+        tests:
+          - not_null
+
+      - name: latitude
+        description: Latitude coordinate of the GPS event.
+
+      - name: longitude
+        description: Longitude coordinate of the GPS event.
