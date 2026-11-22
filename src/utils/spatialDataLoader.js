@@ -1,80 +1,29 @@
 import { processRowObject, processGeojson } from '@kepler.gl/processors';
 import { parseSpatialDataset, computeDataCenter } from './spatialParser';
 
-export const CATCHMENT_DATASET_ID = 'mumbai_catchment_500m';
+export const CATCHMENT_DATASET_ID = 'bengaluru_catchment_500m';
+export const FOOTFALL_DATASET_ID = 'bengaluru_retail_stores';
 
-export const MUMBAI_FOOTFALL_DATA = [
+export const BENGALURU_STORE_FALLBACK_DATA = [
   {
-    id: 'MUM_001',
-    store_name: 'Bandra Linking Road Flagship',
-    category: 'Western Suburbs',
-    latitude: 19.0607,
-    longitude: 72.8362,
-    value: 1420,
-    timestamp: '2026-11-19 18:00:00',
+    id: 'STORE_001',
+    store_name: 'Nexus Koramangala Mall',
+    category: 'Mall & Entertainment',
+    latitude: 12.9348,
+    longitude: 77.6111,
+    gross_area_sqft: 450000,
+    value: 450000,
+    timestamp: '2026-11-22 18:00:00',
   },
   {
-    id: 'MUM_002',
-    store_name: 'Lower Parel High Street',
-    category: 'South Mumbai',
-    latitude: 18.9953,
-    longitude: 72.8266,
-    value: 1890,
-    timestamp: '2026-11-19 19:00:00',
-  },
-  {
-    id: 'MUM_003',
-    store_name: 'BKC Corporate Plaza',
-    category: 'Central Suburbs',
-    latitude: 19.0674,
-    longitude: 72.8675,
-    value: 1650,
-    timestamp: '2026-11-19 13:00:00',
-  },
-  {
-    id: 'MUM_004',
-    store_name: 'Andheri West Lokhandwala',
-    category: 'Western Suburbs',
-    latitude: 19.1416,
-    longitude: 72.8262,
-    value: 1310,
-    timestamp: '2026-11-19 20:00:00',
-  },
-  {
-    id: 'MUM_005',
-    store_name: 'Powai Galleria Hub',
-    category: 'Eastern Suburbs',
-    latitude: 19.1197,
-    longitude: 72.9051,
-    value: 1180,
-    timestamp: '2026-11-19 17:00:00',
-  },
-  {
-    id: 'MUM_006',
-    store_name: 'Colaba Causeway Heritage',
-    category: 'South Mumbai',
-    latitude: 18.922,
-    longitude: 72.8347,
-    value: 1540,
-    timestamp: '2026-11-19 16:00:00',
-  },
-  {
-    id: 'MUM_007',
-    store_name: 'Vashi Inorbit Sector 30',
-    category: 'Navi Mumbai',
-    latitude: 19.0658,
-    longitude: 73.0012,
-    value: 1260,
-    timestamp: '2026-11-19 18:30:00',
-  },
-  {
-    id: 'MUM_008',
-    store_name: 'Thane Viviana Mall',
-    category: 'Thane',
-    latitude: 19.2089,
-    longitude: 72.9718,
-    value: 1720,
-    timestamp: '2026-11-19 19:30:00',
+    id: 'STORE_002',
+    store_name: 'Decathlon Electronic City',
+    category: 'Sports & Fitness',
+    latitude: 12.8452,
+    longitude: 77.6602,
+    gross_area_sqft: 32000,
+    value: 32000,
+    timestamp: '2026-11-22 18:00:00',
   },
 ];
 
@@ -107,13 +56,47 @@ function createCirclePolygonGeoJSON(lng, lat, radiusMeters = 500, steps = 48) {
   };
 }
 
+function parseRetailStoresCsv(csvText) {
+  const lines = csvText
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length < 2) return [];
+
+  const headers = lines[0].split(',').map((h) => h.trim());
+  return lines.slice(1).map((line, index) => {
+    const values = line.split(',').map((v) => v.trim());
+    const row = {};
+    headers.forEach((header, idx) => {
+      row[header] = values[idx] ?? '';
+    });
+
+    const lat = Number(row.latitude);
+    const lng = Number(row.longitude);
+    const areaSqft = Number(row.gross_area_sqft);
+
+    return {
+      id: row.store_id || `STORE_${String(index + 1).padStart(3, '0')}`,
+      store_name: row.store_name || `Store ${index + 1}`,
+      category: row.category || 'Retail',
+      latitude: Number.isFinite(lat) ? lat : 12.9716,
+      longitude: Number.isFinite(lng) ? lng : 77.5946,
+      gross_area_sqft: Number.isFinite(areaSqft) ? areaSqft : 0,
+      value: Number.isFinite(areaSqft) ? areaSqft : 0,
+      timestamp: '2026-11-22 18:00:00',
+    };
+  });
+}
+
 export function buildCatchmentGeoJson(
-  rawData = MUMBAI_FOOTFALL_DATA,
+  rawData = BENGALURU_STORE_FALLBACK_DATA,
   radiusMeters = 500
 ) {
+  const safeRows = Array.isArray(rawData) ? rawData : [];
   return {
     type: 'FeatureCollection',
-    features: rawData.map((row) => ({
+    features: safeRows.map((row) => ({
       type: 'Feature',
       geometry: createCirclePolygonGeoJSON(
         Number(row.longitude),
@@ -124,7 +107,8 @@ export function buildCatchmentGeoJson(
         id: row.id,
         store_name: row.store_name,
         category: row.category,
-        value: Number(row.value),
+        gross_area_sqft: Number(row.gross_area_sqft) || 0,
+        value: Number(row.value) || 0,
         radius_m: radiusMeters,
         timestamp: row.timestamp,
       },
@@ -133,10 +117,18 @@ export function buildCatchmentGeoJson(
 }
 
 export function getProcessedCatchmentDataset(
-  rawData = MUMBAI_FOOTFALL_DATA,
-  radiusMeters = 500
+  rawData = BENGALURU_STORE_FALLBACK_DATA,
+  radiusMeters = 500,
+  externalGeoJson = null
 ) {
-  const featureCollection = buildCatchmentGeoJson(rawData, radiusMeters);
+  const featureCollection =
+    externalGeoJson &&
+    externalGeoJson.type === 'FeatureCollection' &&
+    Array.isArray(externalGeoJson.features) &&
+    externalGeoJson.features.length > 0
+      ? externalGeoJson
+      : buildCatchmentGeoJson(rawData, radiusMeters);
+
   const processedGeojson = processGeojson(featureCollection);
 
   return {
@@ -154,18 +146,29 @@ export function getProcessedCatchmentDataset(
   };
 }
 
-export function getProcessedFootfallDataset(rawData = MUMBAI_FOOTFALL_DATA) {
+export function getProcessedFootfallDataset(
+  rawData = BENGALURU_STORE_FALLBACK_DATA
+) {
+  if (!Array.isArray(rawData) || rawData.length === 0) {
+    throw new Error('No retail store records available to render.');
+  }
+
   const parsedPoints = parseSpatialDataset(rawData);
+  if (!Array.isArray(parsedPoints) || parsedPoints.length === 0) {
+    throw new Error('Parsed retail store dataset is empty.');
+  }
+
   const center = computeDataCenter(parsedPoints);
   const processedData = processRowObject(parsedPoints);
 
   return {
     center,
+    recordCount: parsedPoints.length,
     payload: {
       datasets: {
         info: {
-          label: 'Mumbai Retail Footfall',
-          id: 'mumbai_footfall_data',
+          label: 'Bengaluru Retail Stores',
+          id: FOOTFALL_DATASET_ID,
         },
         data: processedData,
       },
@@ -174,5 +177,57 @@ export function getProcessedFootfallDataset(rawData = MUMBAI_FOOTFALL_DATA) {
         readOnly: false,
       },
     },
+  };
+}
+
+export async function loadGeoPulseDatasets({ radiusMeters = 500, signal } = {}) {
+  let sourceRows = BENGALURU_STORE_FALLBACK_DATA;
+  let externalGeoJson = null;
+  let sourceLabel = 'Built-in Bengaluru Store Dataset';
+
+  try {
+    const [csvRes, geoRes] = await Promise.allSettled([
+      fetch('/data/raw/retail_stores.csv', { signal }),
+      fetch('/data/raw/retail_stores_catchment_500m.geojson', { signal }),
+    ]);
+
+    if (csvRes.status === 'fulfilled' && csvRes.value.ok) {
+      const csvText = await csvRes.value.text();
+      const parsedCsv = parseRetailStoresCsv(csvText);
+      if (parsedCsv.length > 0) {
+        sourceRows = parsedCsv;
+        sourceLabel = 'data/raw/retail_stores.csv';
+      }
+    }
+
+    if (geoRes.status === 'fulfilled' && geoRes.value.ok) {
+      const geoJsonData = await geoRes.value.json();
+      if (
+        geoJsonData?.type === 'FeatureCollection' &&
+        Array.isArray(geoJsonData.features) &&
+        geoJsonData.features.length > 0
+      ) {
+        externalGeoJson = geoJsonData;
+      }
+    }
+  } catch (err) {
+    if (err?.name === 'AbortError') {
+      throw err;
+    }
+  }
+
+  const footfallResult = getProcessedFootfallDataset(sourceRows);
+  const catchmentPayload = getProcessedCatchmentDataset(
+    sourceRows,
+    radiusMeters,
+    externalGeoJson
+  );
+
+  return {
+    center: footfallResult.center,
+    recordCount: footfallResult.recordCount,
+    sourceLabel,
+    footfallPayload: footfallResult.payload,
+    catchmentPayload,
   };
 }

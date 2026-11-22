@@ -1,0 +1,13 @@
+store_id,store_name,category,latitude,longitude,gross_area_sqft
+STORE_001,Nexus Koramangala Mall,Mall & Entertainment,12.9348,77.6111,450000
+STORE_002,Decathlon Electronic City,Sports & Fitness,12.8452,77.6602,32000
+STORE_003,Nature's Basket HSR Layout,Gourmet Grocery,12.9121,77.6446,8500
+STORE_004,Reliance Digital Bellandur,Consumer Electronics,12.926,77.6762,14000
+STORE_005,Zara Central Commercial St,Fashion & Apparel,12.9733,77.608,28000
+STORE_006,Croma Electronic City Phase 1,Consumer Electronics,12.8399,77.677,12500
+STORE_007,Star Hypermarket Sarjapur,Hypermarket,12.911,77.685,52000
+STORE_008,Westside Koramangala 80ft Rd,Fashion & Apparel,12.938,77.6255,22000
+STORE_009,Blue Tokai Roastery BTM,Cafe & QSR,12.9166,77.6101,4200
+STORE_010,Forum South Bengaluru Mall,Mall & Entertainment,12.889,77.551,650000
+STORE_011,Total Retail Hub Sarjapur,Superstore,12.9215,77.6705,38000
+STORE_012,Phoenix Marketcity Whitefield,Mall & Entertainment,12.9958,77.6963,980000
