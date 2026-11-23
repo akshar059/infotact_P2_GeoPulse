@@ -1,7 +1,7 @@
 export function createGeoPulseMapConfig(
-  dataId = 'mumbai_footfall_data',
+  dataId = 'bengaluru_retail_stores',
   mapState = {},
-  catchmentDataId = 'mumbai_catchment_500m'
+  catchmentDataId = 'bengaluru_catchment_500m'
 ) {
   const defaultColors = [
     '#4C0035',
@@ -174,14 +174,17 @@ export function createGeoPulseMapConfig(
             fieldsToShow: {
               [dataId]: [
                 { name: 'id', format: null },
+                { name: 'store_name', format: null },
                 { name: 'value', format: null },
                 { name: 'category', format: null },
                 { name: 'timestamp', format: 'L LTS' },
               ],
               [catchmentDataId]: [
+                { name: 'store_id', format: null },
                 { name: 'id', format: null },
                 { name: 'store_name', format: null },
                 { name: 'category', format: null },
+                { name: 'gross_area_sqft', format: null },
                 { name: 'value', format: null },
                 { name: 'radius_m', format: null },
               ],
@@ -239,10 +242,10 @@ export function createGeoPulseMapConfig(
       mapState: {
         bearing: 0,
         dragRotate: true,
-        latitude: mapState.latitude ?? 19.072675,
-        longitude: mapState.longitude ?? 72.8836625,
+        latitude: mapState.latitude ?? 12.9279,
+        longitude: mapState.longitude ?? 77.6271,
         pitch: 0,
-        zoom: mapState.zoom ?? 10.5,
+        zoom: mapState.zoom ?? 11,
         isSplit: false,
         isViewportSynced: true,
         isZoomLocked: false,

@@ -1,28 +1,3 @@
-if (import.meta.env.DEV) {
-  const originalError = console.error;
-  const originalWarn = console.warn;
-
-  const ignoredPatterns = [
-    'Accessing element.ref was removed in React 19',
-    "Cannot register modal instance that's already open",
-    'Mapbox Token not valid',
-    'Binding weightsTexture not set',
-    "several instances of 'styled-components'",
-  ];
-
-  console.error = (...args) => {
-    const msg = args.map(String).join(' ');
-    if (ignoredPatterns.some((p) => msg.includes(p))) return;
-    originalError(...args);
-  };
-
-  console.warn = (...args) => {
-    const msg = args.map(String).join(' ');
-    if (ignoredPatterns.some((p) => msg.includes(p))) return;
-    originalWarn(...args);
-  };
-}
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';

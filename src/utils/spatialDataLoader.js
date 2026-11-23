@@ -27,7 +27,7 @@ export const BENGALURU_STORE_FALLBACK_DATA = [
   },
 ];
 
-function createCirclePolygonGeoJSON(lng, lat, radiusMeters = 500, steps = 48) {
+function createCirclePolygonGeoJSON(lng, lat, radiusMeters = 500, steps = 64) {
   const earthRadius = 6371000;
   const angularDistance = radiusMeters / earthRadius;
   const latRad = (lat * Math.PI) / 180;
@@ -56,6 +56,31 @@ function createCirclePolygonGeoJSON(lng, lat, radiusMeters = 500, steps = 48) {
   };
 }
 
+function splitCsvLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (ch === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
 function parseRetailStoresCsv(csvText) {
   const lines = csvText
     .split(/\r?\n/)
@@ -64,9 +89,9 @@ function parseRetailStoresCsv(csvText) {
 
   if (lines.length < 2) return [];
 
-  const headers = lines[0].split(',').map((h) => h.trim());
+  const headers = splitCsvLine(lines[0]);
   return lines.slice(1).map((line, index) => {
-    const values = line.split(',').map((v) => v.trim());
+    const values = splitCsvLine(line);
     const row = {};
     headers.forEach((header, idx) => {
       row[header] = values[idx] ?? '';
@@ -105,6 +130,7 @@ export function buildCatchmentGeoJson(
       ),
       properties: {
         id: row.id,
+        store_id: row.id,
         store_name: row.store_name,
         category: row.category,
         gross_area_sqft: Number(row.gross_area_sqft) || 0,

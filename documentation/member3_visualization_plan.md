@@ -58,3 +58,8 @@
   - Datasets Used: `retail_stores.csv` (12 Bengaluru stores) and `retail_stores_catchment_500m.geojson` (12 catchments) render smoothly in Kepler.gl (`Footfall Intensity`, `500m Store Catchments`, `Retail Store Locations`).
   - Viewer Updates: Added `loading`, `empty`, `failed`, and `succeeded` states, retry button, `AbortController` cleanup, and memoized props in `SpatialMapViewer.jsx` and `spatialDataLoader.js`.
   - Data Strategy: Kept heavy/processed files (`.csv.gz`, `.parquet`, `.json`, and ~98k mobility rows) out of live map rendering to keep the browser fast and lag-free.
+* **Day 14 (Nov 23, 2026) – Mid-Project Integrity Audit & Bengaluru Schema Alignment:**
+  - **Dataset & Config Alignment:** Standardized dataset IDs (`bengaluru_retail_stores` and `bengaluru_catchment_500m`) and default Bengaluru map center (`12.9279, 77.6271`) across `src/utils/spatialDataLoader.js` and `src/utils/mapConfig.js`.
+  - **Parser & GeoJSON Validation:** Hardened `src/utils/spatialParser.js` with finite coordinate validation and bounding-box zoom calculation, and configured `store_id` and `gross_area_sqft` hover tooltips on the `500m` catchment polygon layer.
+  - **Render & Load Performance Audit:** Streamlined `src/components/map/SpatialMapViewer.jsx` by applying the `Carto Voyager` basemap directly inside `addDataToMap`, verifying `AbortController` request cancellation, and measuring initial map load time (`ms`) across all `12` stores and `12` `500m` catchments.
+  - **Baseline Audit Metrics:** Validated dashboard readiness against the processed dataset (`98,426` evaluated pings, `31,881` in-catchment pings, and `98.12%` cleaning retention) with zero console or runtime errors ahead of the Day 15 Mid-Project Review.

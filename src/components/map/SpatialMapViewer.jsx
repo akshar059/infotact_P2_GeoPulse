@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import KeplerGl from '@kepler.gl/components';
 import { useDispatch } from 'react-redux';
+import { addDataToMap } from '@kepler.gl/actions';
 import {
-  updateMap,
-  mapStyleChange,
-  addDataToMap,
-} from '@kepler.gl/actions';
-import { loadGeoPulseDatasets } from '../../utils/spatialDataLoader';
+  loadGeoPulseDatasets,
+  FOOTFALL_DATASET_ID,
+  CATCHMENT_DATASET_ID,
+} from '../../utils/spatialDataLoader';
 import { createGeoPulseMapConfig } from '../../utils/mapConfig';
 
 const CUSTOM_MAP_STYLES = [
@@ -35,7 +35,7 @@ const VIEWER_CONTAINER_STYLE = {
   margin: 0,
   padding: 0,
   overflow: 'hidden',
-  position: 'absolute',
+  position: 'relative',
   top: 0,
   left: 0,
 };
@@ -70,7 +70,7 @@ const STATUS_BADGE_STYLE = {
   bottom: '12px',
   left: '12px',
   zIndex: 10,
-  backgroundColor: 'rgba(15, 23, 42, 0.8)',
+  backgroundColor: 'rgba(15, 23, 42, 0.82)',
   color: '#e2e8f0',
   padding: '6px 10px',
   borderRadius: '6px',
@@ -80,6 +80,7 @@ const STATUS_BADGE_STYLE = {
 
 const SpatialMapViewer = () => {
   const dispatch = useDispatch();
+  const controllerRef = useRef(null);
 
   const [dimensions, setDimensions] = useState(() => ({
     width: window.innerWidth,
@@ -90,105 +91,103 @@ const SpatialMapViewer = () => {
   const [metaInfo, setMetaInfo] = useState({
     recordCount: 0,
     sourceLabel: '',
+    loadTimeMs: 0,
   });
 
-  const handleResize = useCallback(() => {
-    setDimensions({
-      width: window.innerWidth,
-      height: window.innerHeight,
-    });
+  useEffect(() => {
+    const handleResize = () => {
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  useEffect(() => {
-    window.addEventListener('resize', handleResize);
-    const timer = setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 200);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      clearTimeout(timer);
-    };
-  }, [handleResize]);
-
-  const loadMapData = useCallback(
-    async (signal) => {
-      setStatus('loading');
-      setErrorMessage('');
-
-      try {
-        const result = await loadGeoPulseDatasets({
-          radiusMeters: 500,
-          signal,
-        });
-
-        if (signal?.aborted) return;
-
-        if (!result || result.recordCount === 0) {
-          setMetaInfo({ recordCount: 0, sourceLabel: result?.sourceLabel || '' });
-          setStatus('empty');
-          return;
-        }
-
-        const { center, recordCount, sourceLabel, footfallPayload, catchmentPayload } =
-          result;
-
-        const dataId = footfallPayload.datasets.info.id;
-        const catchmentDataId = catchmentPayload.datasets.info.id;
-        const mapConfig = createGeoPulseMapConfig(dataId, center, catchmentDataId);
-
-        mapConfig.config.mapStyle.mapStyles = MAP_STYLES_BY_ID;
-
-        dispatch(
-          addDataToMap({
-            datasets: [footfallPayload.datasets, catchmentPayload.datasets],
-            config: mapConfig,
-            options: {
-              centerMap: false,
-              readOnly: false,
-            },
-          })
-        );
-
-        setMetaInfo({ recordCount, sourceLabel });
-        setStatus('succeeded');
-
-        setTimeout(() => {
-          if (signal?.aborted) return;
-          dispatch(mapStyleChange('carto_voyager'));
-          dispatch(
-            updateMap({
-              latitude: center.latitude,
-              longitude: center.longitude,
-              zoom: center.zoom,
-              pitch: 0,
-              bearing: 0,
-            })
-          );
-        }, 150);
-      } catch (err) {
-        if (err?.name === 'AbortError' || signal?.aborted) return;
-        setErrorMessage(
-          err?.message || 'Unable to load Bengaluru spatial dataset.'
-        );
-        setStatus('failed');
-      }
-    },
-    [dispatch]
-  );
-
-  useEffect(() => {
+  const executeLoad = useCallback(async () => {
+    if (controllerRef.current) {
+      controllerRef.current.abort();
+    }
     const controller = new AbortController();
-    loadMapData(controller.signal);
+    controllerRef.current = controller;
+    const { signal } = controller;
 
+    setStatus('loading');
+    setErrorMessage('');
+    const startPerf = performance.now();
+
+    try {
+      const result = await loadGeoPulseDatasets({
+        radiusMeters: 500,
+        signal,
+      });
+
+      if (signal.aborted) return;
+
+      if (!result || result.recordCount === 0) {
+        setMetaInfo({
+          recordCount: 0,
+          sourceLabel: result?.sourceLabel || '',
+          loadTimeMs: Math.round(performance.now() - startPerf),
+        });
+        setStatus('empty');
+        return;
+      }
+
+      const { center, recordCount, sourceLabel, footfallPayload, catchmentPayload } =
+        result;
+
+      const dataId = footfallPayload?.datasets?.info?.id || FOOTFALL_DATASET_ID;
+      const catchmentDataId =
+        catchmentPayload?.datasets?.info?.id || CATCHMENT_DATASET_ID;
+
+      const mapConfig = createGeoPulseMapConfig(
+        dataId,
+        {
+          latitude: center?.latitude,
+          longitude: center?.longitude,
+          zoom: center?.zoom,
+        },
+        catchmentDataId
+      );
+
+      mapConfig.config.mapStyle.styleType = 'carto_voyager';
+      mapConfig.config.mapStyle.mapStyles = MAP_STYLES_BY_ID;
+
+      dispatch(
+        addDataToMap({
+          datasets: [footfallPayload.datasets, catchmentPayload.datasets],
+          config: mapConfig,
+          options: {
+            centerMap: false,
+            readOnly: false,
+          },
+        })
+      );
+
+      setMetaInfo({
+        recordCount,
+        sourceLabel,
+        loadTimeMs: Math.round(performance.now() - startPerf),
+      });
+      setStatus('succeeded');
+    } catch (err) {
+      if (err?.name === 'AbortError' || signal.aborted) return;
+      setErrorMessage(
+        err?.message || 'Unable to load Bengaluru spatial dataset.'
+      );
+      setStatus('failed');
+    }
+  }, [dispatch]);
+
+  useEffect(() => {
+    executeLoad();
     return () => {
-      controller.abort();
+      controllerRef.current?.abort();
     };
-  }, [loadMapData]);
-
-  const handleRetry = useCallback(() => {
-    loadMapData();
-  }, [loadMapData]);
+  }, [executeLoad]);
 
   const keplerProps = useMemo(
     () => ({
@@ -213,7 +212,7 @@ const SpatialMapViewer = () => {
       {status === 'empty' && (
         <div style={OVERLAY_STYLE} role="status">
           <div>No retail store records found to display on the map.</div>
-          <button type="button" style={RETRY_BUTTON_STYLE} onClick={handleRetry}>
+          <button type="button" style={RETRY_BUTTON_STYLE} onClick={executeLoad}>
             Reload Data
           </button>
         </div>
@@ -222,7 +221,7 @@ const SpatialMapViewer = () => {
       {status === 'failed' && (
         <div style={OVERLAY_STYLE} role="alert">
           <div>Failed to load map data: {errorMessage}</div>
-          <button type="button" style={RETRY_BUTTON_STYLE} onClick={handleRetry}>
+          <button type="button" style={RETRY_BUTTON_STYLE} onClick={executeLoad}>
             Retry
           </button>
         </div>
@@ -232,7 +231,8 @@ const SpatialMapViewer = () => {
 
       {status === 'succeeded' && metaInfo.recordCount > 0 && (
         <div style={STATUS_BADGE_STYLE}>
-          Stores: {metaInfo.recordCount} | Source: {metaInfo.sourceLabel}
+          Stores: {metaInfo.recordCount} | Source: {metaInfo.sourceLabel} | Load:{' '}
+          {metaInfo.loadTimeMs}ms
         </div>
       )}
     </div>
