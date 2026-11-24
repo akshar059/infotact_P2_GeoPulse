@@ -20,7 +20,7 @@
 | Timeline | Phase | Key Milestones | Status |
 | :--- | :--- | :--- | :--- |
 | **Week 1** (10 Nov – 16 Nov) | UI Foundation & Layout | React setup, dashboard shell, KPI cards (MetricsGrid), filter sidebar | Done |
-| **Week 2** (17 Nov – 23 Nov) | Map Engine & Data Binding | Kepler.gl integration, map controls, binding processed footfall data | In Progress |
+| **Week 2** (17 Nov – 23 Nov) | Map Engine & Data Binding | Kepler.gl integration, map controls, binding processed footfall data | Done |
 | **Week 3** (24 Nov – 30 Nov) | 3D Grids & Time Controls | 3D H3 hexagon layers, 24-hour timeline slider, movement arc layers | Planned |
 | **Week 4** (01 Dec – 08 Dec) | Analytics & Final Polish | Peak hour charts, store ranking tables, UI polish, final demo & PPT | Planned |
 
@@ -63,3 +63,8 @@
   - **Parser & GeoJSON Validation:** Hardened `src/utils/spatialParser.js` with finite coordinate validation and bounding-box zoom calculation, and configured `store_id` and `gross_area_sqft` hover tooltips on the `500m` catchment polygon layer.
   - **Render & Load Performance Audit:** Streamlined `src/components/map/SpatialMapViewer.jsx` by applying the `Carto Voyager` basemap directly inside `addDataToMap`, verifying `AbortController` request cancellation, and measuring initial map load time (`ms`) across all `12` stores and `12` `500m` catchments.
   - **Baseline Audit Metrics:** Validated dashboard readiness against the processed dataset (`98,426` evaluated pings, `31,881` in-catchment pings, and `98.12%` cleaning retention) with zero console or runtime errors ahead of the Day 15 Mid-Project Review.
+* **Day 15 (Nov 24, 2026) - Mid-Project Review Checkpoint — Mid-Term Milestone Documentation & Demo Branch Polish**
+  - **Milestone Review & Portal Write-Ups:** Completed and submitted the Week 1 and Week 2 progress write-ups along with architecture notes for the Mid-Project Review checkpoint.
+  - **Demo Branch & Spatial Rendering Verification:** Verified live rendering of the React + Kepler.gl Bengaluru dashboard (`12` retail stores, `500m` catchment polygon overlays, and footfall intensity heatmap) on the `sagar` branch with clean console output and `Carto Voyager` basemap alignment.
+  - **Baseline Data Audit Reference:** Documented baseline validation metrics (`98,426` evaluated pings, `31,881` in-catchment pings across `12` stores, and `98.12%` cleaning retention) while keeping heavy raw/processed mobility files isolated from live browser map rendering.
+  - **Transition to Week 3:** Concluded Week 2 spatial data binding and set up the next phase for `h3_res9` Uber H3 grid indexing, 3D H3 Hexagon elevation columns, and the 24-hour timeline slider.
