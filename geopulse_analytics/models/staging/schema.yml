@@ -27,7 +27,11 @@ models:
           - not_null
 
       - name: latitude
-        description: Latitude coordinate of the GPS event.
+        description: Latitude coordinate; expected range is -90 to 90.
+        tests:
+          - valid_latitude
 
       - name: longitude
-        description: Longitude coordinate of the GPS event.
+        description: Longitude coordinate; expected range is -180 to 180.
+        tests:
+          - valid_longitude
