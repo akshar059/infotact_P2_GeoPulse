@@ -1,0 +1,16 @@
+# Local database
+*.duckdb
+*.duckdb.wal
+
+# dbt generated files
+geopulse_analytics/target/
+geopulse_analytics/dbt_packages/
+geopulse_analytics/logs/
+
+# Environment files
+.env
+.venv/
+__pycache__/
+
+# Root logs
+logs/
