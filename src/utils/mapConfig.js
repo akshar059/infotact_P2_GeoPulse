@@ -1,7 +1,8 @@
 export function createGeoPulseMapConfig(
   dataId = 'bengaluru_retail_stores',
   mapState = {},
-  catchmentDataId = 'bengaluru_catchment_500m'
+  catchmentDataId = 'bengaluru_catchment_500m',
+  h3DataId = 'bengaluru_h3_grid_res9'
 ) {
   const defaultColors = [
     '#4C0035',
@@ -18,6 +19,46 @@ export function createGeoPulseMapConfig(
       visState: {
         filters: [],
         layers: [
+          {
+            id: 'geopulse_h3_grid_res9',
+            type: 'hexagonId',
+            config: {
+              dataId: h3DataId,
+              label: 'H3 Spatial Grid (Res 9)',
+              color: [239, 145, 0],
+              highlightColor: [252, 242, 26, 255],
+              columns: {
+                hex_id: 'hex_id',
+              },
+              isVisible: true,
+              visConfig: {
+                opacity: 0.65,
+                enable3d: false,
+                elevationScale: 5,
+                colorRange: {
+                  name: 'Global Warming',
+                  type: 'sequential',
+                  category: 'Uber',
+                  colors: defaultColors,
+                },
+                coverage: 0.92,
+                outline: true,
+                allowHover: true,
+                showHighlightColor: true,
+              },
+              hidden: false,
+              textLabel: [],
+            },
+            visualChannels: {
+              colorField: {
+                name: 'ping_count',
+                type: 'integer',
+              },
+              colorScale: 'quantile',
+              sizeField: null,
+              sizeScale: 'linear',
+            },
+          },
           {
             id: 'geopulse_footfall_heatmap',
             type: 'heatmap',
@@ -188,6 +229,12 @@ export function createGeoPulseMapConfig(
                 { name: 'value', format: null },
                 { name: 'radius_m', format: null },
               ],
+              [h3DataId]: [
+                { name: 'hex_id', format: null },
+                { name: 'ping_count', format: null },
+                { name: 'unique_visitors', format: null },
+                { name: 'store_id', format: null },
+              ],
             },
             timezone: null,
             compareMode: false,
@@ -234,6 +281,7 @@ export function createGeoPulseMapConfig(
         layerOrder: [
           'geopulse_store_points',
           'geopulse_store_catchment_500m',
+          'geopulse_h3_grid_res9',
           'geopulse_footfall_heatmap',
         ],
         groupBys: [],

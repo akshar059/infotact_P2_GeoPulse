@@ -6,6 +6,7 @@ import {
   loadGeoPulseDatasets,
   FOOTFALL_DATASET_ID,
   CATCHMENT_DATASET_ID,
+  H3_GRID_DATASET_ID,
 } from '../../utils/spatialDataLoader';
 import { createGeoPulseMapConfig } from '../../utils/mapConfig';
 
@@ -90,6 +91,7 @@ const SpatialMapViewer = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [metaInfo, setMetaInfo] = useState({
     recordCount: 0,
+    h3Count: 0,
     sourceLabel: '',
     loadTimeMs: 0,
   });
@@ -129,6 +131,7 @@ const SpatialMapViewer = () => {
       if (!result || result.recordCount === 0) {
         setMetaInfo({
           recordCount: 0,
+          h3Count: 0,
           sourceLabel: result?.sourceLabel || '',
           loadTimeMs: Math.round(performance.now() - startPerf),
         });
@@ -136,12 +139,20 @@ const SpatialMapViewer = () => {
         return;
       }
 
-      const { center, recordCount, sourceLabel, footfallPayload, catchmentPayload } =
-        result;
+      const {
+        center,
+        recordCount,
+        h3Count = 0,
+        sourceLabel,
+        footfallPayload,
+        catchmentPayload,
+        h3Payload,
+      } = result;
 
       const dataId = footfallPayload?.datasets?.info?.id || FOOTFALL_DATASET_ID;
       const catchmentDataId =
         catchmentPayload?.datasets?.info?.id || CATCHMENT_DATASET_ID;
+      const h3DataId = h3Payload?.datasets?.info?.id || H3_GRID_DATASET_ID;
 
       const mapConfig = createGeoPulseMapConfig(
         dataId,
@@ -150,15 +161,21 @@ const SpatialMapViewer = () => {
           longitude: center?.longitude,
           zoom: center?.zoom,
         },
-        catchmentDataId
+        catchmentDataId,
+        h3DataId
       );
 
       mapConfig.config.mapStyle.styleType = 'carto_voyager';
       mapConfig.config.mapStyle.mapStyles = MAP_STYLES_BY_ID;
 
+      const datasetsToAdd = [footfallPayload.datasets, catchmentPayload.datasets];
+      if (h3Payload?.datasets) {
+        datasetsToAdd.push(h3Payload.datasets);
+      }
+
       dispatch(
         addDataToMap({
-          datasets: [footfallPayload.datasets, catchmentPayload.datasets],
+          datasets: datasetsToAdd,
           config: mapConfig,
           options: {
             centerMap: false,
@@ -169,6 +186,7 @@ const SpatialMapViewer = () => {
 
       setMetaInfo({
         recordCount,
+        h3Count,
         sourceLabel,
         loadTimeMs: Math.round(performance.now() - startPerf),
       });
@@ -231,8 +249,8 @@ const SpatialMapViewer = () => {
 
       {status === 'succeeded' && metaInfo.recordCount > 0 && (
         <div style={STATUS_BADGE_STYLE}>
-          Stores: {metaInfo.recordCount} | Source: {metaInfo.sourceLabel} | Load:{' '}
-          {metaInfo.loadTimeMs}ms
+          Stores: {metaInfo.recordCount} | H3 Cells: {metaInfo.h3Count} | Source:{' '}
+          {metaInfo.sourceLabel} | Load: {metaInfo.loadTimeMs}ms
         </div>
       )}
     </div>

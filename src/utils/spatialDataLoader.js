@@ -3,6 +3,7 @@ import { parseSpatialDataset, computeDataCenter } from './spatialParser';
 
 export const CATCHMENT_DATASET_ID = 'bengaluru_catchment_500m';
 export const FOOTFALL_DATASET_ID = 'bengaluru_retail_stores';
+export const H3_GRID_DATASET_ID = 'bengaluru_h3_grid_res9';
 
 export const BENGALURU_STORE_FALLBACK_DATA = [
   {
@@ -114,6 +115,20 @@ function parseRetailStoresCsv(csvText) {
   });
 }
 
+function sanitizeH3Rows(rows) {
+  if (!Array.isArray(rows)) return [];
+  return rows
+    .filter((row) => row && typeof row.hex_id === 'string' && row.hex_id.trim().length > 0)
+    .map((row) => ({
+      hex_id: row.hex_id.trim(),
+      ping_count: Number.isFinite(Number(row.ping_count)) ? Number(row.ping_count) : 0,
+      unique_visitors: Number.isFinite(Number(row.unique_visitors))
+        ? Number(row.unique_visitors)
+        : 0,
+      store_id: row.store_id ? String(row.store_id) : 'OUTSIDE',
+    }));
+}
+
 export function buildCatchmentGeoJson(
   rawData = BENGALURU_STORE_FALLBACK_DATA,
   radiusMeters = 500
@@ -206,15 +221,39 @@ export function getProcessedFootfallDataset(
   };
 }
 
+export function getProcessedH3GridDataset(h3Rows = []) {
+  const cleanRows = sanitizeH3Rows(h3Rows);
+  if (cleanRows.length === 0) return null;
+
+  return {
+    hexCount: cleanRows.length,
+    payload: {
+      datasets: {
+        info: {
+          label: 'H3 Spatial Grid (Res 9)',
+          id: H3_GRID_DATASET_ID,
+        },
+        data: processRowObject(cleanRows),
+      },
+      options: {
+        centerMap: false,
+        readOnly: false,
+      },
+    },
+  };
+}
+
 export async function loadGeoPulseDatasets({ radiusMeters = 500, signal } = {}) {
   let sourceRows = BENGALURU_STORE_FALLBACK_DATA;
   let externalGeoJson = null;
+  let h3Rows = [];
   let sourceLabel = 'Built-in Bengaluru Store Dataset';
 
   try {
-    const [csvRes, geoRes] = await Promise.allSettled([
+    const [csvRes, geoRes, h3Res] = await Promise.allSettled([
       fetch('/data/raw/retail_stores.csv', { signal }),
       fetch('/data/raw/retail_stores_catchment_500m.geojson', { signal }),
+      fetch('/data/h3_grid_summary.json', { signal }),
     ]);
 
     if (csvRes.status === 'fulfilled' && csvRes.value.ok) {
@@ -236,6 +275,13 @@ export async function loadGeoPulseDatasets({ radiusMeters = 500, signal } = {}) 
         externalGeoJson = geoJsonData;
       }
     }
+
+    if (h3Res.status === 'fulfilled' && h3Res.value.ok) {
+      const h3Json = await h3Res.value.json();
+      if (Array.isArray(h3Json)) {
+        h3Rows = h3Json;
+      }
+    }
   } catch (err) {
     if (err?.name === 'AbortError') {
       throw err;
@@ -248,12 +294,15 @@ export async function loadGeoPulseDatasets({ radiusMeters = 500, signal } = {}) 
     radiusMeters,
     externalGeoJson
   );
+  const h3Result = getProcessedH3GridDataset(h3Rows);
 
   return {
     center: footfallResult.center,
     recordCount: footfallResult.recordCount,
+    h3Count: h3Result?.hexCount || 0,
     sourceLabel,
     footfallPayload: footfallResult.payload,
     catchmentPayload,
+    h3Payload: h3Result?.payload || null,
   };
 }
