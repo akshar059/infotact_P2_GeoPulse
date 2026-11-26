@@ -72,3 +72,7 @@
   - H3 Grid Summary Aggregation:** Aggregated `data/processed/gps_mobility_spatial_joined_100k.csv` into `public/data/h3_grid_summary.json` (`4,117` `h3_res9` hexagons with `hex_id`, `ping_count`, `unique_visitors`, and dominant `store_id`) to keep browser rendering fast.
   - Data Loader & Kepler Layer Integration:** Updated `src/utils/spatialDataLoader.js`, `src/utils/mapConfig.js`, and `src/components/map/SpatialMapViewer.jsx` to load `h3_grid_summary.json` and render the `geopulse_h3_grid_res9` (`hexagonId`) layer color-encoded by `ping_count` with hover tooltips.
   - Rendering Verification:** Confirmed all `4,117` H3 hexagons render cleanly over Bengaluru alongside store locations and `500m` catchment overlays on `http://localhost:5173/`.
+* **Day 17 (Nov 26, 2026) - 3D H3 Hexagon Elevation Columns**
+  - **3D Extrusion & Scale:** Enabled `enable3d: true` (`elevationScale: 8`, `opacity: 0.72`) on `geopulse_h3_grid_res9` in `src/utils/mapConfig.js` and bound `visualChannels.elevationField` to `ping_count`
+  - **3D Camera Perspective:** Configured `mapViewMode: 'MODE_3D'`, `pitch: 38`, `maxPitch: 60`, and `dragRotate: true` so 3D footfall columns are immediately visible and rotatable on load
+- **Visual Check:** Verified 3D vertical column extrusion, color gradients, and layer stack rendering on `http://localhost:5173/`

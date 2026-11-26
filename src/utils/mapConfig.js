@@ -32,9 +32,9 @@ export function createGeoPulseMapConfig(
               },
               isVisible: true,
               visConfig: {
-                opacity: 0.65,
-                enable3d: false,
-                elevationScale: 5,
+                opacity: 0.72,
+                enable3d: true,
+                elevationScale: 8,
                 colorRange: {
                   name: 'Global Warming',
                   type: 'sequential',
@@ -55,6 +55,11 @@ export function createGeoPulseMapConfig(
                 type: 'integer',
               },
               colorScale: 'quantile',
+              elevationField: {
+                name: 'ping_count',
+                type: 'integer',
+              },
+              elevationScale: 'linear',
               sizeField: null,
               sizeScale: 'linear',
             },
@@ -292,7 +297,7 @@ export function createGeoPulseMapConfig(
         dragRotate: true,
         latitude: mapState.latitude ?? 12.9279,
         longitude: mapState.longitude ?? 77.6271,
-        pitch: 0,
+        pitch: mapState.pitch ?? 38,
         zoom: mapState.zoom ?? 11,
         isSplit: false,
         isViewportSynced: true,
@@ -301,7 +306,7 @@ export function createGeoPulseMapConfig(
         maxPitch: 60,
         mapSplitMode: 'SINGLE_MAP',
         swipeComparePercentage: 50,
-        mapViewMode: 'MODE_2D',
+        mapViewMode: 'MODE_3D',
       },
       mapStyle: {
         styleType: 'carto_voyager',
