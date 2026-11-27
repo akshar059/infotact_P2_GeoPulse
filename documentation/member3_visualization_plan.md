@@ -21,7 +21,7 @@
 | :--- | :--- | :--- | :--- |
 | **Week 1** (10 Nov – 16 Nov) | UI Foundation & Layout | React setup, dashboard shell, KPI cards (MetricsGrid), filter sidebar | Done |
 | **Week 2** (17 Nov – 23 Nov) | Map Engine & Data Binding | Kepler.gl integration, map controls, binding processed footfall data | Done |
-| **Week 3** (24 Nov – 30 Nov) | 3D Grids & Time Controls | 3D H3 hexagon layers, 24-hour timeline slider, movement arc layers | Planned |
+| **Week 3** (24 Nov – 30 Nov) | 3D Grids & Time Controls | 3D H3 hexagon layers, 24-hour timeline slider, movement arc layers | In Process |
 | **Week 4** (01 Dec – 08 Dec) | Analytics & Final Polish | Peak hour charts, store ranking tables, UI polish, final demo & PPT | Planned |
 
 ---
@@ -75,4 +75,12 @@
 * **Day 17 (Nov 26, 2026) - 3D H3 Hexagon Elevation Columns**
   - **3D Extrusion & Scale:** Enabled `enable3d: true` (`elevationScale: 8`, `opacity: 0.72`) on `geopulse_h3_grid_res9` in `src/utils/mapConfig.js` and bound `visualChannels.elevationField` to `ping_count`
   - **3D Camera Perspective:** Configured `mapViewMode: 'MODE_3D'`, `pitch: 38`, `maxPitch: 60`, and `dragRotate: true` so 3D footfall columns are immediately visible and rotatable on load
-- **Visual Check:** Verified 3D vertical column extrusion, color gradients, and layer stack rendering on `http://localhost:5173/`
+  - **Visual Check:** Verified 3D vertical column extrusion, color gradients, and layer stack rendering on `http://localhost:5173/`
+* **Day 18 (Nov 27, 2026) - 3D H3 Elevation Tuning & Interactive Map Controls**
+  - **3D H3 Layer & Camera Tuning (`src/utils/mapConfig.js`):**
+    - Set `elevationScale` to `'sqrt'` with a `3.5` scale factor and `0.58` opacity on `geopulse_h3_grid_res9` (`hexagonId`) so high-footfall `h3_res9` cells stand out while keeping base map streets and labels legible
+    - Derived initial `mapViewMode` (`MODE_3D` vs. `MODE_2D`) and `pitch` (`38`° in 3D) from `mapState` options while preserving `dragRotate: true` and `maxPitch: 60`
+  - **Interactive Quick Controls (`src/components/map/SpatialMapViewer.jsx`):**
+    - Added a bottom-right quick-action bar with **3D View / 2D View** (`updateMap` pitch & view mode), **H3 Grid: On / Off** (`layerConfigChange` visibility and 3D state), and **Reset View** (re-centering on Bengaluru at the active view mode)
+    - Passed `pitch` and `mapViewMode` into `createGeoPulseMapConfig` during dataset initialization
+  

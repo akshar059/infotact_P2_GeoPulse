@@ -13,6 +13,8 @@ export function createGeoPulseMapConfig(
     '#FFC300',
   ];
 
+  const initialPitch = mapState.pitch ?? 38;
+
   return {
     version: 'v1',
     config: {
@@ -32,16 +34,16 @@ export function createGeoPulseMapConfig(
               },
               isVisible: true,
               visConfig: {
-                opacity: 0.72,
+                opacity: 0.58,
                 enable3d: true,
-                elevationScale: 8,
+                elevationScale: 3.5,
                 colorRange: {
                   name: 'Global Warming',
                   type: 'sequential',
                   category: 'Uber',
                   colors: defaultColors,
                 },
-                coverage: 0.92,
+                coverage: 0.9,
                 outline: true,
                 allowHover: true,
                 showHighlightColor: true,
@@ -59,7 +61,7 @@ export function createGeoPulseMapConfig(
                 name: 'ping_count',
                 type: 'integer',
               },
-              elevationScale: 'linear',
+              elevationScale: 'sqrt',
               sizeField: null,
               sizeScale: 'linear',
             },
@@ -293,11 +295,11 @@ export function createGeoPulseMapConfig(
         joins: [],
       },
       mapState: {
-        bearing: 0,
+        bearing: mapState.bearing ?? 0,
         dragRotate: true,
         latitude: mapState.latitude ?? 12.9279,
         longitude: mapState.longitude ?? 77.6271,
-        pitch: mapState.pitch ?? 38,
+        pitch: initialPitch,
         zoom: mapState.zoom ?? 11,
         isSplit: false,
         isViewportSynced: true,
@@ -306,7 +308,7 @@ export function createGeoPulseMapConfig(
         maxPitch: 60,
         mapSplitMode: 'SINGLE_MAP',
         swipeComparePercentage: 50,
-        mapViewMode: 'MODE_3D',
+        mapViewMode: mapState.mapViewMode ?? (initialPitch > 0 ? 'MODE_3D' : 'MODE_2D'),
       },
       mapStyle: {
         styleType: 'carto_voyager',

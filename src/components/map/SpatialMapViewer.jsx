@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import KeplerGl from '@kepler.gl/components';
 import { useDispatch } from 'react-redux';
-import { addDataToMap } from '@kepler.gl/actions';
+import { addDataToMap, layerConfigChange, updateMap } from '@kepler.gl/actions';
 import {
   loadGeoPulseDatasets,
   FOOTFALL_DATASET_ID,
@@ -9,6 +9,8 @@ import {
   H3_GRID_DATASET_ID,
 } from '../../utils/spatialDataLoader';
 import { createGeoPulseMapConfig } from '../../utils/mapConfig';
+
+const H3_LAYER_ID = 'geopulse_h3_grid_res9';
 
 const CUSTOM_MAP_STYLES = [
   {
@@ -79,9 +81,38 @@ const STATUS_BADGE_STYLE = {
   pointerEvents: 'none',
 };
 
+const QUICK_CONTROLS_STYLE = {
+  position: 'absolute',
+  bottom: '12px',
+  right: '12px',
+  zIndex: 10,
+  display: 'flex',
+  gap: '6px',
+  backgroundColor: 'rgba(15, 23, 42, 0.86)',
+  padding: '6px',
+  borderRadius: '8px',
+  border: '1px solid rgba(148, 163, 184, 0.25)',
+};
+
+const getControlButtonStyle = (active) => ({
+  padding: '5px 10px',
+  borderRadius: '6px',
+  border: '1px solid rgba(148, 163, 184, 0.35)',
+  backgroundColor: active ? '#2563eb' : 'rgba(30, 41, 59, 0.9)',
+  color: '#f8fafc',
+  fontSize: '12px',
+  fontWeight: 600,
+  cursor: 'pointer',
+});
+
 const SpatialMapViewer = () => {
   const dispatch = useDispatch();
   const controllerRef = useRef(null);
+  const defaultCenterRef = useRef({
+    latitude: 12.9279,
+    longitude: 77.6271,
+    zoom: 11,
+  });
 
   const [dimensions, setDimensions] = useState(() => ({
     width: window.innerWidth,
@@ -89,6 +120,8 @@ const SpatialMapViewer = () => {
   }));
   const [status, setStatus] = useState('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [is3DMode, setIs3DMode] = useState(true);
+  const [h3Visible, setH3Visible] = useState(true);
   const [metaInfo, setMetaInfo] = useState({
     recordCount: 0,
     h3Count: 0,
@@ -149,6 +182,12 @@ const SpatialMapViewer = () => {
         h3Payload,
       } = result;
 
+      defaultCenterRef.current = {
+        latitude: center?.latitude ?? 12.9279,
+        longitude: center?.longitude ?? 77.6271,
+        zoom: center?.zoom ?? 11,
+      };
+
       const dataId = footfallPayload?.datasets?.info?.id || FOOTFALL_DATASET_ID;
       const catchmentDataId =
         catchmentPayload?.datasets?.info?.id || CATCHMENT_DATASET_ID;
@@ -160,6 +199,8 @@ const SpatialMapViewer = () => {
           latitude: center?.latitude,
           longitude: center?.longitude,
           zoom: center?.zoom,
+          pitch: is3DMode ? 38 : 0,
+          mapViewMode: is3DMode ? 'MODE_3D' : 'MODE_2D',
         },
         catchmentDataId,
         h3DataId
@@ -198,7 +239,7 @@ const SpatialMapViewer = () => {
       );
       setStatus('failed');
     }
-  }, [dispatch]);
+  }, [dispatch, is3DMode]);
 
   useEffect(() => {
     executeLoad();
@@ -206,6 +247,51 @@ const SpatialMapViewer = () => {
       controllerRef.current?.abort();
     };
   }, [executeLoad]);
+
+  const handleToggle3D = useCallback(() => {
+    setIs3DMode((prev) => {
+      const next3D = !prev;
+      dispatch(
+        updateMap({
+          pitch: next3D ? 38 : 0,
+          bearing: 0,
+          mapViewMode: next3D ? 'MODE_3D' : 'MODE_2D',
+        })
+      );
+      return next3D;
+    });
+  }, [dispatch]);
+
+  const handleToggleH3Layer = useCallback(() => {
+    setH3Visible((prev) => {
+      const nextVisible = !prev;
+      dispatch(
+        layerConfigChange(
+          { id: H3_LAYER_ID },
+          {
+            isVisible: nextVisible,
+            visConfig: {
+              enable3d: is3DMode && nextVisible,
+            },
+          }
+        )
+      );
+      return nextVisible;
+    });
+  }, [dispatch, is3DMode]);
+
+  const handleResetCamera = useCallback(() => {
+    dispatch(
+      updateMap({
+        latitude: defaultCenterRef.current.latitude,
+        longitude: defaultCenterRef.current.longitude,
+        zoom: defaultCenterRef.current.zoom,
+        pitch: is3DMode ? 38 : 0,
+        bearing: 0,
+        mapViewMode: is3DMode ? 'MODE_3D' : 'MODE_2D',
+      })
+    );
+  }, [dispatch, is3DMode]);
 
   const keplerProps = useMemo(
     () => ({
@@ -248,10 +334,36 @@ const SpatialMapViewer = () => {
       <KeplerGl {...keplerProps} />
 
       {status === 'succeeded' && metaInfo.recordCount > 0 && (
-        <div style={STATUS_BADGE_STYLE}>
-          Stores: {metaInfo.recordCount} | H3 Cells: {metaInfo.h3Count} | Source:{' '}
-          {metaInfo.sourceLabel} | Load: {metaInfo.loadTimeMs}ms
-        </div>
+        <>
+          <div style={STATUS_BADGE_STYLE}>
+            Stores: {metaInfo.recordCount} | H3 Cells: {metaInfo.h3Count} | Source:{' '}
+            {metaInfo.sourceLabel} | Load: {metaInfo.loadTimeMs}ms
+          </div>
+
+          <div style={QUICK_CONTROLS_STYLE} role="group" aria-label="Map quick controls">
+            <button
+              type="button"
+              style={getControlButtonStyle(is3DMode)}
+              onClick={handleToggle3D}
+            >
+              {is3DMode ? '3D View' : '2D View'}
+            </button>
+            <button
+              type="button"
+              style={getControlButtonStyle(h3Visible)}
+              onClick={handleToggleH3Layer}
+            >
+              {h3Visible ? 'H3 Grid: On' : 'H3 Grid: Off'}
+            </button>
+            <button
+              type="button"
+              style={getControlButtonStyle(false)}
+              onClick={handleResetCamera}
+            >
+              Reset View
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
