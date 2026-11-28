@@ -19,7 +19,20 @@ export function createGeoPulseMapConfig(
     version: 'v1',
     config: {
       visState: {
-        filters: [],
+        filters: [
+          {
+            dataId: [h3DataId],
+            id: 'h3_grid_visibility_filter',
+            name: ['ping_count'],
+            type: 'range',
+            value: [0, 1000000000],
+            enlarged: false,
+            plotType: 'histogram',
+            animationWindow: 'free',
+            yAxis: null,
+            speed: 1,
+          },
+        ],
         layers: [
           {
             id: 'geopulse_h3_grid_res9',
@@ -36,7 +49,7 @@ export function createGeoPulseMapConfig(
               visConfig: {
                 opacity: 0.58,
                 enable3d: true,
-                elevationScale: 3.5,
+                elevationScale: 2,
                 colorRange: {
                   name: 'Global Warming',
                   type: 'sequential',

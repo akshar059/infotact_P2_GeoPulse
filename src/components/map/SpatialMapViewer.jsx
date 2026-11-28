@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import KeplerGl from '@kepler.gl/components';
 import { useDispatch } from 'react-redux';
-import { addDataToMap, layerConfigChange, updateMap } from '@kepler.gl/actions';
+import { addDataToMap, setFilter, updateMap } from '@kepler.gl/actions';
 import {
   loadGeoPulseDatasets,
   FOOTFALL_DATASET_ID,
@@ -9,8 +9,7 @@ import {
   H3_GRID_DATASET_ID,
 } from '../../utils/spatialDataLoader';
 import { createGeoPulseMapConfig } from '../../utils/mapConfig';
-
-const H3_LAYER_ID = 'geopulse_h3_grid_res9';
+import HourlyTimelineControl from './HourlyTimelineControl';
 
 const CUSTOM_MAP_STYLES = [
   {
@@ -71,13 +70,19 @@ const RETRY_BUTTON_STYLE = {
 const STATUS_BADGE_STYLE = {
   position: 'absolute',
   bottom: '12px',
-  left: '12px',
+  left: '455px', // clears both the open sidebar and the 5 km scale bar
   zIndex: 10,
-  backgroundColor: 'rgba(15, 23, 42, 0.82)',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
+  backgroundColor: 'rgba(15, 23, 42, 0.88)',
   color: '#e2e8f0',
-  padding: '6px 10px',
-  borderRadius: '6px',
-  fontSize: '12px',
+  padding: '8px 16px',
+  borderRadius: '5000px',
+  border: '1px solid rgba(148, 163, 184, 0.25)',
+  fontSize: '9px',
+  fontFamily: 'system-ui, -apple-system, sans-serif',
+  letterSpacing: '0.02em',
   pointerEvents: 'none',
 };
 
@@ -94,6 +99,19 @@ const QUICK_CONTROLS_STYLE = {
   border: '1px solid rgba(148, 163, 184, 0.25)',
 };
 
+const TIMELINE_WRAPPER_STYLE = {
+  position: 'absolute',
+  bottom: '56px',
+  right: '12px',
+  zIndex: 10,
+  backgroundColor: 'rgba(15, 23, 42, 0.88)',
+  color: '#f8fafc',
+  padding: '8px 12px',
+  borderRadius: '8px',
+  border: '1px solid rgba(148, 163, 184, 0.25)',
+  fontSize: '12px',
+};
+
 const getControlButtonStyle = (active) => ({
   padding: '5px 10px',
   borderRadius: '6px',
@@ -108,6 +126,7 @@ const getControlButtonStyle = (active) => ({
 const SpatialMapViewer = () => {
   const dispatch = useDispatch();
   const controllerRef = useRef(null);
+  const is3DModeRef = useRef(true);
   const defaultCenterRef = useRef({
     latitude: 12.9279,
     longitude: 77.6271,
@@ -122,12 +141,21 @@ const SpatialMapViewer = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [is3DMode, setIs3DMode] = useState(true);
   const [h3Visible, setH3Visible] = useState(true);
+  const [timeState, setTimeState] = useState({
+    preset: 'all',
+    hour: null,
+    window: null,
+  });
   const [metaInfo, setMetaInfo] = useState({
     recordCount: 0,
     h3Count: 0,
     sourceLabel: '',
     loadTimeMs: 0,
   });
+
+  useEffect(() => {
+    is3DModeRef.current = is3DMode;
+  }, [is3DMode]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -193,14 +221,15 @@ const SpatialMapViewer = () => {
         catchmentPayload?.datasets?.info?.id || CATCHMENT_DATASET_ID;
       const h3DataId = h3Payload?.datasets?.info?.id || H3_GRID_DATASET_ID;
 
+      const current3D = is3DModeRef.current;
       const mapConfig = createGeoPulseMapConfig(
         dataId,
         {
           latitude: center?.latitude,
           longitude: center?.longitude,
           zoom: center?.zoom,
-          pitch: is3DMode ? 38 : 0,
-          mapViewMode: is3DMode ? 'MODE_3D' : 'MODE_2D',
+          pitch: current3D ? 38 : 0,
+          mapViewMode: current3D ? 'MODE_3D' : 'MODE_2D',
         },
         catchmentDataId,
         h3DataId
@@ -239,7 +268,7 @@ const SpatialMapViewer = () => {
       );
       setStatus('failed');
     }
-  }, [dispatch, is3DMode]);
+  }, [dispatch]);
 
   useEffect(() => {
     executeLoad();
@@ -265,33 +294,48 @@ const SpatialMapViewer = () => {
   const handleToggleH3Layer = useCallback(() => {
     setH3Visible((prev) => {
       const nextVisible = !prev;
-      dispatch(
-        layerConfigChange(
-          { id: H3_LAYER_ID },
-          {
-            isVisible: nextVisible,
-            visConfig: {
-              enable3d: is3DMode && nextVisible,
-            },
-          }
-        )
-      );
+      const upperBound = nextVisible ? 1000000000 : 0;
+
+      dispatch(setFilter(0, 'name', ['ping_count']));
+      dispatch(setFilter(0, 'value', [0, upperBound]));
+
       return nextVisible;
     });
-  }, [dispatch, is3DMode]);
+  }, [dispatch]);
 
   const handleResetCamera = useCallback(() => {
-    dispatch(
-      updateMap({
-        latitude: defaultCenterRef.current.latitude,
-        longitude: defaultCenterRef.current.longitude,
-        zoom: defaultCenterRef.current.zoom,
-        pitch: is3DMode ? 38 : 0,
-        bearing: 0,
-        mapViewMode: is3DMode ? 'MODE_3D' : 'MODE_2D',
-      })
-    );
-  }, [dispatch, is3DMode]);
+  const targetPitch = is3DMode ? 38 : 0;
+  const targetMode = is3DMode ? 'MODE_3D' : 'MODE_2D';
+
+  setTimeState({
+    preset: 'all',
+    hour: null,
+    window: null,
+  });
+
+  dispatch(
+    addDataToMap({
+      datasets: [],
+      config: {
+        version: 'v1',
+        config: {
+          mapState: {
+            latitude: defaultCenterRef.current.latitude,
+            longitude: defaultCenterRef.current.longitude,
+            zoom: defaultCenterRef.current.zoom,
+            pitch: targetPitch,
+            bearing: 0,
+            mapViewMode: targetMode,
+          },
+        },
+      },
+      options: {
+        centerMap: true,
+        keepExistingConfig: true,
+      },
+    })
+  );
+}, [dispatch, is3DMode]);
 
   const keplerProps = useMemo(
     () => ({
@@ -335,6 +379,14 @@ const SpatialMapViewer = () => {
 
       {status === 'succeeded' && metaInfo.recordCount > 0 && (
         <>
+          <div style={TIMELINE_WRAPPER_STYLE}>
+            <HourlyTimelineControl
+              selectedHour={timeState.hour}
+              activeWindow={timeState.window}
+              onTimeChange={setTimeState}
+            />
+          </div>
+
           <div style={STATUS_BADGE_STYLE}>
             Stores: {metaInfo.recordCount} | H3 Cells: {metaInfo.h3Count} | Source:{' '}
             {metaInfo.sourceLabel} | Load: {metaInfo.loadTimeMs}ms
